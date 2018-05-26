@@ -4,6 +4,7 @@ import sys
 from collections import Counter
 
 import numpy as np
+import tensorflow.contrib.keras as kr
 
 if sys.version_info[0] > 2:
     is_py3 = True
@@ -99,11 +100,15 @@ def to_words(content, words):
 def process_file(filename, word_to_id, cat_to_id, max_length=600):
     """将文件转换为id表示"""
     contents, labels = read_file(filename)
-
+    # for i in contents[0]:
+        # print i.encode('utf-8')
     data_id, label_id = [], []
     for i in range(len(contents)):
-        data_id.append([word_to_id[x] for x in contents[i] if x in word_to_id])
+        data_id.append([word_to_id[x] for x in contents[i] if x in word_to_id])##把contents中的每一个词用word_to_id中id表示
+        # print data_id
+        # break
         label_id.append(cat_to_id[labels[i]])
+
 
     # 使用keras提供的pad_sequences来将文本pad为固定长度
     x_pad = kr.preprocessing.sequence.pad_sequences(data_id, max_length)
@@ -125,9 +130,3 @@ def batch_iter(x, y, batch_size=64):
         start_id = i * batch_size
         end_id = min((i + 1) * batch_size, data_len)
         yield x_shuffle[start_id:end_id], y_shuffle[start_id:end_id]
-
-
-
-
-if __name__ == '__main__':
-    process_file()

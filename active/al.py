@@ -24,7 +24,8 @@ from libact.base.dataset import Dataset, import_libsvm_sparse
 from libact.models import *
 from libact.query_strategies import *
 from libact.labelers import IdealLabeler
-from cp-cnews_loader import read_vocab, read_category, batch_iter, process_file, build_vocab
+# from cp-cnews_loader import read_vocab, read_category, batch_iter, process_file, build_vocab
+from dealword import read_vocab, read_category, batch_iter, process_file, build_vocab
 
 
 def run(trn_ds, tst_ds, lbr, model, qs, quota):
@@ -45,7 +46,20 @@ def run(trn_ds, tst_ds, lbr, model, qs, quota):
 
 
 def split_train_test(dataset_filepath, test_size, n_labeled):
-    X, y = import_libsvm_sparse(dataset_filepath).format_sklearn()
+    base_dir = 'data/news'
+    train_dir = os.path.join(base_dir,'train3_shuf.txt')
+    vocab_dir = os.path.join(base_dir,'cnews.vocab_test.txt')
+    if not os.path.exists(vocab_dir):
+        build_vocab(train_dir,vocab_dir,2000)
+    categories, cat_to_id = read_category()
+    words, word_to_id = read_vocab(vocab_dir)
+
+    x,y = process_file(train_dir,word_to_id, cat_to_id,600)
+    print x
+    print y
+
+    # X, y = import_libsvm_sparse(dataset_filepath).format_sklearn()
+
 
     X_train, X_test, y_train, y_test = \
         train_test_split(X, y, test_size=test_size)
@@ -67,7 +81,7 @@ def main():
         # os.path.dirname(os.path.realpath(__file__)), 'diabetes.txt')
     test_size = 0.33    # the percentage of samples in the dataset that will be
     # randomly selected and assigned to the test set
-    n_labeled = 10      # number of samples that are initially labeled
+    n_labeled = 1000      # number of samples that are initially labeled
 
     # Load dataset
     trn_ds, tst_ds, y_train, fully_labeled_trn_ds = \
