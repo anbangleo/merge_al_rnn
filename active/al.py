@@ -1,3 +1,4 @@
+# coding: utf-8
 #!/usr/bin/env python3
 """
 The script helps guide the users to quickly understand how to use
@@ -9,7 +10,10 @@ import copy
 import os
 
 import numpy as np
+import matplotlib as mpl
+mpl.use('TkAgg')
 import matplotlib.pyplot as plt
+
 try:
     from sklearn.model_selection import train_test_split
 except ImportError:
@@ -20,6 +24,7 @@ from libact.base.dataset import Dataset, import_libsvm_sparse
 from libact.models import *
 from libact.query_strategies import *
 from libact.labelers import IdealLabeler
+from cp-cnews_loader import read_vocab, read_category, batch_iter, process_file, build_vocab
 
 
 def run(trn_ds, tst_ds, lbr, model, qs, quota):
@@ -55,15 +60,18 @@ def split_train_test(dataset_filepath, test_size, n_labeled):
 def main():
     # Specifiy the parameters here:
     # path to your binary classification dataset
-    dataset_filepath = os.path.join(
-        os.path.dirname(os.path.realpath(__file__)), 'diabetes.txt')
+    base_dir = 'data/cnews'
+    train_dir = os.path.join(base_dir,'train3_shuf.txt')
+    vocab_dir = os.path.join(base_dir,'cnews.vocab_test.txt')
+    # dataset_filepath = os.path.join(
+        # os.path.dirname(os.path.realpath(__file__)), 'diabetes.txt')
     test_size = 0.33    # the percentage of samples in the dataset that will be
     # randomly selected and assigned to the test set
     n_labeled = 10      # number of samples that are initially labeled
 
     # Load dataset
     trn_ds, tst_ds, y_train, fully_labeled_trn_ds = \
-        split_train_test(dataset_filepath, test_size, n_labeled)
+        split_train_test(train_dir, test_size, n_labeled)
     trn_ds2 = copy.deepcopy(trn_ds)
     lbr = IdealLabeler(fully_labeled_trn_ds)
 
