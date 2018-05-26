@@ -30,10 +30,13 @@ from dealword import read_vocab, read_category, batch_iter, process_file, build_
 
 def run(trn_ds, tst_ds, lbr, model, qs, quota):
     E_in, E_out = [], []
-
+    i = 1
     for _ in range(quota):
         # Standard usage of libact objects
         ask_id = qs.make_query()
+        print (str(i)+"th times to ask.")
+        print (ask_id)
+        i = i + 1
         X, _ = zip(*trn_ds.data)
         lb = lbr.label(X[ask_id])
         trn_ds.update(ask_id, lb)
@@ -47,7 +50,7 @@ def run(trn_ds, tst_ds, lbr, model, qs, quota):
 
 def split_train_test(dataset_filepath, test_size, n_labeled):
     base_dir = 'data/news'
-    train_dir = os.path.join(base_dir,'train3_shuf.txt')
+    train_dir = os.path.join(base_dir,'train3_shuf_5000.txt')
     vocab_dir = os.path.join(base_dir,'cnews.vocab_test.txt')
     if not os.path.exists(vocab_dir):
         build_vocab(train_dir,vocab_dir,2000)
@@ -55,19 +58,24 @@ def split_train_test(dataset_filepath, test_size, n_labeled):
     words, word_to_id = read_vocab(vocab_dir)
 
     x,y = process_file(train_dir,word_to_id, cat_to_id,600)
-    print x
-    print y
+    listy = []
+    for i in range(np.shape(y)[0]):
+        for j in range(np.shape(y)[1]):
+            if y[i][j] == 1:
+                listy.append(j)
+
+    listy = np.array(listy) 
 
     # X, y = import_libsvm_sparse(dataset_filepath).format_sklearn()
 
 
     X_train, X_test, y_train, y_test = \
-        train_test_split(X, y, test_size=test_size)
+        train_test_split(x, listy, test_size=test_size)
     trn_ds = Dataset(X_train, np.concatenate(
         [y_train[:n_labeled], [None] * (len(y_train) - n_labeled)]))
     tst_ds = Dataset(X_test, y_test)
     fully_labeled_trn_ds = Dataset(X_train, y_train)
-
+#    print (fully_labeled_trn_ds.get_entries()[0])
     return trn_ds, tst_ds, y_train, fully_labeled_trn_ds
 
 
@@ -76,7 +84,7 @@ def main():
     # path to your binary classification dataset
     base_dir = 'data/cnews'
     train_dir = os.path.join(base_dir,'train3_shuf.txt')
-    vocab_dir = os.path.join(base_dir,'cnews.vocab_test.txt')
+    vocab_dir = os.path.join(base_dir,'cnews.vocab_5000.txt')
     # dataset_filepath = os.path.join(
         # os.path.dirname(os.path.realpath(__file__)), 'diabetes.txt')
     test_size = 0.33    # the percentage of samples in the dataset that will be
@@ -114,6 +122,7 @@ def main():
     plt.title('Experiment Result')
     plt.legend(loc='upper center', bbox_to_anchor=(0.5, -0.05),
                fancybox=True, shadow=True, ncol=5)
+    plt.savefig('result.png')
     plt.show()
 
 
