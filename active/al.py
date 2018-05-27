@@ -26,22 +26,42 @@ from libact.query_strategies import *
 from libact.labelers import IdealLabeler
 # from cp-cnews_loader import read_vocab, read_category, batch_iter, process_file, build_vocab
 from dealword import read_vocab, read_category, batch_iter, process_file, build_vocab
+import time
+from datetime import timedelta
+import gc
+gc.disable()
 
+def get_time_dif(start_time):
+    """获取已使用时间"""
+    end_time = time.time()
+    time_dif = end_time - start_time
+    return time_dif
+    # return timedelta(seconds=int(round(time_dif)))
 
 def run(trn_ds, tst_ds, lbr, model, qs, quota):
     E_in, E_out = [], []
     i = 1
     for _ in range(quota):
         # Standard usage of libact objects
+        start_time = time.time()
         ask_id = qs.make_query()
-        print (str(i)+"th times to ask.")
+        print (str(i)+"th times to ask.======================")
         print (ask_id)
+        unlabeled_entry_ids, X_pool = zip(*trn_ds.get_unlabeled_entries())
+        print (np.shape(X_pool))
+        time_dif = get_time_dif(start_time)
+        print ("time to ask"+str(time_dif))        
+
         i = i + 1
         X, _ = zip(*trn_ds.data)
+
         lb = lbr.label(X[ask_id])
         trn_ds.update(ask_id, lb)
-
+        
+        start_time = time.time()
         model.train(trn_ds)
+        time_dif = get_time_dif(start_time)
+        print ("time to train"+str(time_dif))
         E_in = np.append(E_in, 1 - model.score(trn_ds))
         E_out = np.append(E_out, 1 - model.score(tst_ds))
 
@@ -51,7 +71,7 @@ def run(trn_ds, tst_ds, lbr, model, qs, quota):
 def split_train_test(dataset_filepath, test_size, n_labeled):
     base_dir = 'data/news'
     train_dir = os.path.join(base_dir,'train3_shuf_5000.txt')
-    vocab_dir = os.path.join(base_dir,'cnews.vocab_test.txt')
+    vocab_dir = os.path.join(base_dir,'vocab_test.txt')
     if not os.path.exists(vocab_dir):
         build_vocab(train_dir,vocab_dir,2000)
     categories, cat_to_id = read_category()
