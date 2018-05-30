@@ -107,7 +107,9 @@ def process_file(filename, word_to_id, cat_to_id, max_length=600):
         label_id.append(cat_to_id[labels[i]])
 
     # 使用keras提供的pad_sequences来将文本pad为固定长度
-    x_pad = kr.preprocessing.sequence.pad_sequences(data_id, max_length)
+    print (data_id[0])
+    x_pad = kr.preprocessing.sequence.pad_sequences(data_id, 3000)
+    print (x_pad[0])
     y_pad = kr.utils.to_categorical(label_id, num_classes=len(cat_to_id))  # 将标签转换为one-hot表示
 
     return x_pad, y_pad
@@ -137,13 +139,10 @@ if __name__ == '__main__':
     words, word_to_id = read_vocab(vocab_dir)
 
     x,y = process_file(train_dir,word_to_id, cat_to_id,600)
-    print (x)
     #print (np.shape(x))
     #print ("word_to_id")
     #print (type(word_to_id))
     #print (word_to_id)
-    print ('=================================')
-    print (y)
     #print (np.shape(y))
     #print ("cat_to_id")
     #print (cat_to_id)

@@ -5,6 +5,7 @@ from collections import Counter
 
 import numpy as np
 import tensorflow.contrib.keras as kr
+from sklearn import preprocessing
 
 if sys.version_info[0] > 2:
     is_py3 = True
@@ -109,9 +110,43 @@ def process_file(filename, word_to_id, cat_to_id, max_length=600):
         # break
         label_id.append(cat_to_id[labels[i]])
 
+    x_pad = []
+    res = []
+    two = []
+    for i in data_id:
+        ll=len(i)
+        rank = 0
+        q = 0
+        for j in range(1000):
+           # a = format(float(i.count(j))/float(ll),'.6f')
+            a = i.count(j)
+            if float(a) > 0:
+                res.append(float(a))
+            else:
+                res.append(0)
+        x_pad.append(res)
+        res=[]
+
+    
+        #from 1000 to 20
+#        for p in res:
+ #           rank = rank + p * q 
+  #          q = q + 1
+   #         if q == 20:
+    #            two.append(rank)
+     #           rank = 0
+      #          q = 0
+       #     else:
+        #        pass
+    #    x_pad.append(two)
+     #   two = []      
+      #  res=[]  
+    x_pad = np.array(x_pad)
+    #均一化
+    #x_pad = preprocessing.scale(x_pad)
 
     # 使用keras提供的pad_sequences来将文本pad为固定长度
-    x_pad = kr.preprocessing.sequence.pad_sequences(data_id, max_length)
+   # x_pad = kr.preprocessing.sequence.pad_sequences(data_id, max_length)
     y_pad = kr.utils.to_categorical(label_id, num_classes=len(cat_to_id))  # 将标签转换为one-hot表示
 
     return x_pad, y_pad

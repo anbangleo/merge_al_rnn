@@ -1,5 +1,5 @@
 # coding: utf-8
-import os
+
 import sys
 from collections import Counter
 
@@ -13,7 +13,7 @@ else:
     sys.setdefaultencoding("utf-8")
     is_py3 = False
 
-
+# class Dealword():
 def native_word(word, encoding='utf-8'):
     """如果在python2下面使用python3训练的模型，可考虑调用此函数转化一下字符编码"""
     if not is_py3:
@@ -83,7 +83,7 @@ def read_vocab(vocab_dir):
 
 def read_category():
     """读取分类目录，固定"""
-    categories = ['体育', '娱乐']
+    categories = ['体育','家居', '娱乐']
 
     categories = [native_content(x) for x in categories]
 
@@ -100,32 +100,33 @@ def to_words(content, words):
 def process_file(filename, word_to_id, cat_to_id, max_length=600):
     """将文件转换为id表示"""
     contents, labels = read_file(filename)
-
+    # for i in contents[0]:
+        # print i.encode('utf-8')
     data_id, label_id = [], []
     for i in range(len(contents)):
-        data_id.append([word_to_id[x] for x in contents[i] if x in word_to_id])
+        data_id.append([word_to_id[x] for x in contents[i] if x in word_to_id])##把contents中的每一个词用word_to_id中id表示
+        # print data_id
+        # break
         label_id.append(cat_to_id[labels[i]])
-    # 使用keras提供的pad_sequences来将文本pad为固定长度
+    
     x_pad = []
-    res = []
-    times = 0
-    for i in data_id:
-        print (str(times)+" sentence")
-        times = times + 1
-        ll = len(i)
-        for j in range(3000):
-            a = format(float(i.count(j))/float(ll),'.6f')
-            if float(a) > 0:
-                res.append(a)
-            else:
-                res.append(0)
-        #print (res)
-        x_pad.append(res)
-    print (np.shape(x_pad))
+    for j in data_id:
+        if len(j)>=500:
+            x_pad.append(j[:500])
+        else:
+            for t in range(500-len(j)):
+                j.append(0)
+            x_pad.append(j)
+    
+   # for t in x_pad:
+   #     print(len(t))
+    
+    x_pad = np.array(x_pad)
+
+    # 使用keras提供的pad_sequences来将文本pad为固定长度
    # x_pad = kr.preprocessing.sequence.pad_sequences(data_id, max_length)
     y_pad = kr.utils.to_categorical(label_id, num_classes=len(cat_to_id))  # 将标签转换为one-hot表示
 
-    print (np.shape(x_pad))
     return x_pad, y_pad
 
 
@@ -142,24 +143,3 @@ def batch_iter(x, y, batch_size=64):
         start_id = i * batch_size
         end_id = min((i + 1) * batch_size, data_len)
         yield x_shuffle[start_id:end_id], y_shuffle[start_id:end_id]
-
-if __name__ == '__main__':
-    base_dir = 'data/news'
-    train_dir = os.path.join(base_dir,'train2_600.txt')
-    vocab_dir = os.path.join(base_dir,'vocab3_600.txt')
-    if not os.path.exists(vocab_dir):
-        build_vocab(train_dir,vocab_dir,3000)
-    categories, cat_to_id = read_category()
-    words, word_to_id = read_vocab(vocab_dir)
-
-    x,y = process_file(train_dir,word_to_id, cat_to_id,600)
-    print (x)
-    #print (np.shape(x))
-    #print ("word_to_id")
-    #print (type(word_to_id))
-    #print (word_to_id)
-    print ('=================================')
-    print (y)
-    #print (np.shape(y))
-    #print ("cat_to_id")
-    #print (cat_to_id)

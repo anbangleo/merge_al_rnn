@@ -55,7 +55,8 @@ def run(trn_ds, tst_ds, lbr, model, qs, quota):
 
         lb = lbr.label(X[ask_id])
         trn_ds.update(ask_id, lb)
-        
+        print (trn_ds.format_sklearn())
+        break 
         start_time = time.time()
         model.train(trn_ds)
         time_dif = get_time_dif(start_time)
@@ -68,10 +69,10 @@ def run(trn_ds, tst_ds, lbr, model, qs, quota):
 
 def split_train_test(dataset_filepath, test_size, n_labeled):
     base_dir = 'data/news'
-    train_dir = os.path.join(base_dir,'train2_600.txt')
-    vocab_dir = os.path.join(base_dir,'vocab2_600.txt')
+    train_dir = os.path.join(base_dir,'train2_1000.txt')
+    vocab_dir = os.path.join(base_dir,'vocab2_1000_3.txt')
     if not os.path.exists(vocab_dir):
-        build_vocab(train_dir,vocab_dir,1500)
+        build_vocab(train_dir,vocab_dir,1000)
     categories, cat_to_id = read_category()
     words, word_to_id = read_vocab(vocab_dir)
 
@@ -81,7 +82,6 @@ def split_train_test(dataset_filepath, test_size, n_labeled):
         for j in range(np.shape(y)[1]):
             if y[i][j] == 1:
                 listy.append(j)
-
     listy = np.array(listy) 
 
     # X, y = import_libsvm_sparse(dataset_filepath).format_sklearn()
@@ -101,24 +101,24 @@ def main():
     # Specifiy the parameters here:
     # path to your binary classification dataset
     base_dir = 'data/cnews'
-    train_dir = os.path.join(base_dir,'train2_600.txt')
-    vocab_dir = os.path.join(base_dir,'vocab2_600.txt')
+    train_dir = os.path.join(base_dir,'train2_1000.txt')
+    vocab_dir = os.path.join(base_dir,'vocab2_1000_2.txt')
     # dataset_filepath = os.path.join(
         # os.path.dirname(os.path.realpath(__file__)), 'diabetes.txt')
-    test_size = 0.25    # the percentage of samples in the dataset that will be
+    test_size = 0.3    # the percentage of samples in the dataset that will be
     # randomly selected and assigned to the test set
-    n_labeled = 400      # number of samples that are initially labeled
+    n_labeled = 10      # number of samples that are initially labeled
 
     result = {'E1':[],'E2':[]}
-    for i in range(2):
+    for i in range(1):
     # Load dataset
         trn_ds, tst_ds, y_train, fully_labeled_trn_ds = \
          split_train_test(train_dir, test_size, n_labeled)
         trn_ds2 = copy.deepcopy(trn_ds)
         lbr = IdealLabeler(fully_labeled_trn_ds)
 
-        quota = len(y_train) - n_labeled    # number of samples to query
-
+        #quota = len(y_train) - n_labeled    # number of samples to query
+        quota = 300
     # Comparing UncertaintySampling strategy with RandomSampling.
     # model is the base learner, e.g. LogisticRegression, SVM ... etc.
         qs = UncertaintySampling(trn_ds, method='lc', model=LogisticRegression())
@@ -145,7 +145,7 @@ def main():
     plt.title('Experiment Result')
     plt.legend(loc='upper center', bbox_to_anchor=(0.5, -0.05),
                fancybox=True, shadow=True, ncol=5)
-    plt.savefig('result.png')
+    plt.savefig('result1.png')
     #plt.show()
 
 
