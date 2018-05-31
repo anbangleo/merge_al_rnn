@@ -67,8 +67,8 @@ def run(trn_ds, tst_ds, lbr, model, qs, quota):
 
 def split_train_test(dataset_filepath, test_size, n_labeled):
     base_dir = 'data/news'
-    train_dir = os.path.join(base_dir,'train2_1000.txt')
-    vocab_dir = os.path.join(base_dir,'vocab2_1000_singleword1.txt')
+    train_dir = os.path.join(base_dir,'train2_10000.txt')
+    vocab_dir = os.path.join(base_dir,'vocab2_10000_1.txt')
     if not os.path.exists(vocab_dir):
         build_vocab(train_dir,vocab_dir,1000)
     categories, cat_to_id = read_category()
@@ -108,7 +108,7 @@ def main():
     n_labeled = 10      # number of samples that are initially labeled
 
     result = {'E1':[],'E2':[]}
-    for i in range(3):
+    for i in range(1):
     # Load datas
         trn_ds, tst_ds, y_train, fully_labeled_trn_ds = \
          split_train_test(train_dir, test_size, n_labeled)
@@ -116,7 +116,7 @@ def main():
         lbr = IdealLabeler(fully_labeled_trn_ds)
 
         #quota = len(y_train) - n_labeled    # number of samples to query
-        quota = 300
+        quota = 1000
     # Comparing UncertaintySampling strategy with RandomSampling.
     # model is the base learner, e.g. LogisticRegression, SVM ... etc.
         qs = UncertaintySampling(trn_ds, method='sm',model=SVM(decision_function_shape='ovr'))

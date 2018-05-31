@@ -25,7 +25,7 @@ from libact.models import *
 from libact.query_strategies import *
 from libact.labelers import IdealLabeler
 # from cp-cnews_loader import read_vocab, read_category, batch_iter, process_file, build_vocab
-from dealwordindict import read_vocab, read_category, batch_iter, process_file, build_vocab
+from dealword import read_vocab, read_category, batch_iter, process_file, build_vocab
 import time
 from datetime import timedelta
 import gc
@@ -68,7 +68,7 @@ def run(trn_ds, tst_ds, lbr, model, qs, quota):
 def split_train_test(dataset_filepath, test_size, n_labeled):
     base_dir = 'data/news'
     train_dir = os.path.join(base_dir,'train2_1000.txt')
-    vocab_dir = os.path.join(base_dir,'vocab2_1000_singleword1.txt')
+    vocab_dir = os.path.join(base_dir,'vocab2_1000_3.txt')
     if not os.path.exists(vocab_dir):
         build_vocab(train_dir,vocab_dir,1000)
     categories, cat_to_id = read_category()

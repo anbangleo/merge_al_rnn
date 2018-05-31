@@ -1,10 +1,12 @@
 # coding: utf-8
-# this file is to split an article into WORD
+
 import sys
 from collections import Counter
 
 import numpy as np
 import tensorflow.contrib.keras as kr
+from sklearn import preprocessing
+import jieba
 
 if sys.version_info[0] > 2:
     is_py3 = True
@@ -48,7 +50,9 @@ def read_file(filename):
             try:
                 label, content = line.strip().split('\t')
                 if content:
-                    contents.append(list(native_content(content)))
+                    content = list(jieba.cut(native_content(content)))
+                    contents.append(content)
+                    #contents.append(list(native_content(content)))
                     labels.append(native_content(label))
             except:
                 pass
@@ -58,7 +62,7 @@ def read_file(filename):
 def build_vocab(train_dir, vocab_dir, vocab_size=5000):
     """根据训练集构建词汇表，存储"""
     data_train, _ = read_file(train_dir)
-
+    print ("start to build vob....")
     all_data = []
     for content in data_train:
         all_data.extend(content)
@@ -69,7 +73,7 @@ def build_vocab(train_dir, vocab_dir, vocab_size=5000):
     # 添加一个 <PAD> 来将所有文本pad为同一长度
     words = ['<PAD>'] + list(words)
     open_file(vocab_dir, mode='w').write('\n'.join(words) + '\n')
-
+    print ("Finish building vocab!")
 
 def read_vocab(vocab_dir):
     """读取词汇表"""
@@ -99,34 +103,45 @@ def to_words(content, words):
 
 def process_file(filename, word_to_id, cat_to_id, max_length=600):
     """将文件转换为id表示"""
+    print ("Start to deal with file...")
     contents, labels = read_file(filename)
     # for i in contents[0]:
         # print i.encode('utf-8')
     data_id, label_id = [], []
+    #for t in contents:
+    #    t = list(jieba.cut(t))
     for i in range(len(contents)):
         data_id.append([word_to_id[x] for x in contents[i] if x in word_to_id])##把contents中的每一个词用word_to_id中id表示
         # print data_id
         # break
         label_id.append(cat_to_id[labels[i]])
-    
+
     x_pad = []
-    for j in data_id:
-        if len(j)>=500:
-            x_pad.append(j[:500])
-        else:
-            for t in range(500-len(j)):
-                j.append(0)
-            x_pad.append(j)
-    
-   # for t in x_pad:
-   #     print(len(t))
+    res = []
+    two = []
+    for i in data_id:
+        ll=len(i)
+        rank = 0
+        q = 0
+        for j in range(1000):
+           # a = format(float(i.count(j))/float(ll),'.6f')
+            a = i.count(j)
+            if a > 0:
+                res.append(a)
+            else:
+                res.append(0)
+        x_pad.append(res)
+        res=[]
+
     
     x_pad = np.array(x_pad)
+    #均一化
+    #x_pad = preprocessing.scale(x_pad)
 
     # 使用keras提供的pad_sequences来将文本pad为固定长度
    # x_pad = kr.preprocessing.sequence.pad_sequences(data_id, max_length)
     y_pad = kr.utils.to_categorical(label_id, num_classes=len(cat_to_id))  # 将标签转换为one-hot表示
-
+    print ("Finish dealing with files!")
     return x_pad, y_pad
 
 
