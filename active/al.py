@@ -10,8 +10,8 @@ import copy
 import os
 
 import numpy as np
-import matplotlib as mpl
-mpl.use('TkAgg')
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
 try:
@@ -29,7 +29,6 @@ from dealword import read_vocab, read_category, batch_iter, process_file, build_
 import time
 from datetime import timedelta
 import gc
-gc.disable()
 
 def get_time_dif(start_time):
     """获取已使用时间"""
@@ -42,13 +41,12 @@ def run(trn_ds, tst_ds, lbr, model, qs, quota):
     E_in, E_out = [], []
     i = 1
     for _ in range(quota):
-        # Standard usage of libact objects
+       # gc.disable()
+       # Standard usage of libact objects
         start_time = time.time()
         ask_id = qs.make_query()
         print (str(i)+"th times to ask.======================")
         print (ask_id)
-        unlabeled_entry_ids, X_pool = zip(*trn_ds.get_unlabeled_entries())
-        print (np.shape(X_pool))
         time_dif = get_time_dif(start_time)
         print ("time to ask"+str(time_dif))        
 
@@ -57,33 +55,33 @@ def run(trn_ds, tst_ds, lbr, model, qs, quota):
 
         lb = lbr.label(X[ask_id])
         trn_ds.update(ask_id, lb)
-        
+        print (trn_ds.format_sklearn())
+        break 
         start_time = time.time()
         model.train(trn_ds)
         time_dif = get_time_dif(start_time)
         print ("time to train"+str(time_dif))
+       # gc.enable()
         E_in = np.append(E_in, 1 - model.score(trn_ds))
         E_out = np.append(E_out, 1 - model.score(tst_ds))
-
     return E_in, E_out
 
 
 def split_train_test(dataset_filepath, test_size, n_labeled):
     base_dir = 'data/news'
-    train_dir = os.path.join(base_dir,'train3_shuf_5000.txt')
-    vocab_dir = os.path.join(base_dir,'vocab_test.txt')
+    train_dir = os.path.join(base_dir,'train2_1000.txt')
+    vocab_dir = os.path.join(base_dir,'vocab2_1000_3.txt')
     if not os.path.exists(vocab_dir):
-        build_vocab(train_dir,vocab_dir,2000)
+        build_vocab(train_dir,vocab_dir,1000)
     categories, cat_to_id = read_category()
     words, word_to_id = read_vocab(vocab_dir)
 
-    x,y = process_file(train_dir,word_to_id, cat_to_id,600)
+    x,y = process_file(train_dir,word_to_id, cat_to_id,500)
     listy = []
     for i in range(np.shape(y)[0]):
         for j in range(np.shape(y)[1]):
             if y[i][j] == 1:
                 listy.append(j)
-
     listy = np.array(listy) 
 
     # X, y = import_libsvm_sparse(dataset_filepath).format_sklearn()
@@ -103,38 +101,43 @@ def main():
     # Specifiy the parameters here:
     # path to your binary classification dataset
     base_dir = 'data/cnews'
-    train_dir = os.path.join(base_dir,'train3_shuf.txt')
-    vocab_dir = os.path.join(base_dir,'cnews.vocab_5000.txt')
+    train_dir = os.path.join(base_dir,'train2_1000.txt')
+    vocab_dir = os.path.join(base_dir,'vocab2_1000_2.txt')
     # dataset_filepath = os.path.join(
         # os.path.dirname(os.path.realpath(__file__)), 'diabetes.txt')
-    test_size = 0.33    # the percentage of samples in the dataset that will be
+    test_size = 0.3    # the percentage of samples in the dataset that will be
     # randomly selected and assigned to the test set
-    n_labeled = 1000      # number of samples that are initially labeled
+    n_labeled = 10      # number of samples that are initially labeled
 
+    result = {'E1':[],'E2':[]}
+    for i in range(1):
     # Load dataset
-    trn_ds, tst_ds, y_train, fully_labeled_trn_ds = \
-        split_train_test(train_dir, test_size, n_labeled)
-    trn_ds2 = copy.deepcopy(trn_ds)
-    lbr = IdealLabeler(fully_labeled_trn_ds)
+        trn_ds, tst_ds, y_train, fully_labeled_trn_ds = \
+         split_train_test(train_dir, test_size, n_labeled)
+        trn_ds2 = copy.deepcopy(trn_ds)
+        lbr = IdealLabeler(fully_labeled_trn_ds)
 
-    quota = len(y_train) - n_labeled    # number of samples to query
-
+        #quota = len(y_train) - n_labeled    # number of samples to query
+        quota = 300
     # Comparing UncertaintySampling strategy with RandomSampling.
     # model is the base learner, e.g. LogisticRegression, SVM ... etc.
-    qs = UncertaintySampling(trn_ds, method='lc', model=LogisticRegression())
-    model = LogisticRegression()
-    E_in_1, E_out_1 = run(trn_ds, tst_ds, lbr, model, qs, quota)
-
-    qs2 = RandomSampling(trn_ds2)
-    model = LogisticRegression()
-    E_in_2, E_out_2 = run(trn_ds2, tst_ds, lbr, model, qs2, quota)
-
+        qs = UncertaintySampling(trn_ds, method='lc', model=LogisticRegression())
+        model = LogisticRegression()
+        E_in_1, E_out_1 = run(trn_ds, tst_ds, lbr, model, qs, quota)
+        result['E1'].append(E_out_1)
+        qs2 = RandomSampling(trn_ds2)
+        model = LogisticRegression()
+        E_in_2, E_out_2 = run(trn_ds2, tst_ds, lbr, model, qs2, quota)
+        result['E2'].append(E_out_2)
+    E_out_1 = np.mean(result['E1'],axis=0)
+    E_out_2 = np.mean(result['E2'],axis=0)
     # Plot the learning curve of UncertaintySampling to RandomSampling
     # The x-axis is the number of queries, and the y-axis is the corresponding
     # error rate.
     query_num = np.arange(1, quota + 1)
-    plt.plot(query_num, E_in_1, 'b', label='qs Ein')
-    plt.plot(query_num, E_in_2, 'r', label='random Ein')
+    plt.figure(figsize=(10,8))
+    #plt.plot(query_num, E_in_1, 'b', label='qs Ein')
+    #plt.plot(query_num, E_in_2, 'r', label='random Ein')
     plt.plot(query_num, E_out_1, 'g', label='qs Eout')
     plt.plot(query_num, E_out_2, 'k', label='random Eout')
     plt.xlabel('Number of Queries')
@@ -142,8 +145,8 @@ def main():
     plt.title('Experiment Result')
     plt.legend(loc='upper center', bbox_to_anchor=(0.5, -0.05),
                fancybox=True, shadow=True, ncol=5)
-    plt.savefig('result.png')
-    plt.show()
+    plt.savefig('result1.png')
+    #plt.show()
 
 
 if __name__ == '__main__':

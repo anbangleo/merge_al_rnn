@@ -107,7 +107,9 @@ def process_file(filename, word_to_id, cat_to_id, max_length=600):
         label_id.append(cat_to_id[labels[i]])
 
     # 使用keras提供的pad_sequences来将文本pad为固定长度
-    x_pad = kr.preprocessing.sequence.pad_sequences(data_id, max_length)
+    print (data_id[0])
+    x_pad = kr.preprocessing.sequence.pad_sequences(data_id, 3000)
+    print (x_pad[0])
     y_pad = kr.utils.to_categorical(label_id, num_classes=len(cat_to_id))  # 将标签转换为one-hot表示
 
     return x_pad, y_pad
@@ -128,22 +130,19 @@ def batch_iter(x, y, batch_size=64):
         yield x_shuffle[start_id:end_id], y_shuffle[start_id:end_id]
 
 if __name__ == '__main__':
-    base_dir = 'data/cnews'
-    train_dir = os.path.join(base_dir,'cnews.train3.txt')
-    vocab_dir = os.path.join(base_dir,'cnews.vocab_test.txt')
+    base_dir = 'data/news'
+    train_dir = os.path.join(base_dir,'train2_600.txt')
+    vocab_dir = os.path.join(base_dir,'vocab2_600.txt')
     if not os.path.exists(vocab_dir):
-        build_vocab(train_dir,vocab_dir,5000)
+        build_vocab(train_dir,vocab_dir,2000)
     categories, cat_to_id = read_category()
     words, word_to_id = read_vocab(vocab_dir)
 
     x,y = process_file(train_dir,word_to_id, cat_to_id,600)
-    #print (x)
     #print (np.shape(x))
-    print ("word_to_id")
-    print (type(word_to_id))
-    print (word_to_id)
-    print ('=================================')
-    #print (y)
+    #print ("word_to_id")
+    #print (type(word_to_id))
+    #print (word_to_id)
     #print (np.shape(y))
-    print ("cat_to_id")
-    print (cat_to_id)
+    #print ("cat_to_id")
+    #print (cat_to_id)
