@@ -66,15 +66,17 @@ def run(trn_ds, tst_ds, lbr, model, qs, quota):
 
 
 def split_train_test(dataset_filepath, test_size, n_labeled):
-    base_dir = 'data/news'
-    train_dir = os.path.join(base_dir,'train2_1000.txt')
-    vocab_dir = os.path.join(base_dir,'vocab2_1000_singleword1.txt')
+    #base_dir = './data/yinan'
+    #train_dir = os.path.join(base_dir,'labeled.txt')
+    #vocab_dir = os.path.join(base_dir,'vocab_yinan_1.txt')
+    train_dir = '/home/ab/Project/al/active/data/yinan/labeled1.txt'
+    vocab_dir = '/home/ab/Project/al/active/data/yinan/vocab_yinan_3.txt'
     if not os.path.exists(vocab_dir):
-        build_vocab(train_dir,vocab_dir,1000)
+        build_vocab(train_dir,vocab_dir,500)
     categories, cat_to_id = read_category()
     words, word_to_id = read_vocab(vocab_dir)
 
-    x,y = process_file(train_dir,word_to_id, cat_to_id,500)
+    x,y = process_file(train_dir,word_to_id, cat_to_id,200)
     listy = []
     for i in range(np.shape(y)[0]):
         for j in range(np.shape(y)[1]):
@@ -98,17 +100,17 @@ def split_train_test(dataset_filepath, test_size, n_labeled):
 def main():
     # Specifiy the parameters here:
     # path to your binary classification dataset
-    base_dir = 'data/cnews'
-    train_dir = os.path.join(base_dir,'train2_1000.txt')
-    vocab_dir = os.path.join(base_dir,'vocab2_1000_2.txt')
+    base_dir = 'data/yinan'
+    train_dir = os.path.join(base_dir,'labeled1.txt')
+    vocab_dir = os.path.join(base_dir,'vocab_yinan_3.txt')
     # dataset_filepath = os.path.join(
         # os.path.dirname(os.path.realpath(__file__)), 'diabetes.txt')
     test_size = 0.3    # the percentage of samples in the dataset that will be
     # randomly selected and assigned to the test set
-    n_labeled = 200      # number of samples that are initially labeled
+    n_labeled = 30      # number of samples that are initially labeled
 
     result = {'E1':[],'E2':[]}
-    for i in range(1):
+    for i in range(2):
     # Load datas
         trn_ds, tst_ds, y_train, fully_labeled_trn_ds = \
          split_train_test(train_dir, test_size, n_labeled)
@@ -116,7 +118,7 @@ def main():
         lbr = IdealLabeler(fully_labeled_trn_ds)
 
         #quota = len(y_train) - n_labeled    # number of samples to query
-        quota = 500
+        quota = 680
     # Comparing UncertaintySampling strategy with RandomSampling.
     # model is the base learner, e.g. LogisticRegression, SVM ... etc.
         qs = UncertaintySampling(trn_ds, method='sm',model=SVM(decision_function_shape='ovr'))
