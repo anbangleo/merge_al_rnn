@@ -14,12 +14,12 @@ from sklearn import metrics
 from rnn_model import TRNNConfig, TextRNN
 from data.cnews_loader import read_vocab, read_category, batch_iter, process_file, build_vocab
 
-base_dir = '/home/ab/Project/al/active/data/yinan/rnn'
+base_dir = '/home/ab/Project/al/active/data/yinan/rnn/testrnn'
 train_dir = os.path.join(base_dir, 'train.txt')
 test_dir = os.path.join(base_dir, 'test.txt')
 val_dir = os.path.join(base_dir, 'val.txt')
-vocab_dir = os.path.join(base_dir, 'cnews.vocab1_jieba.txt')
-newfile = 'labeled16.txt'
+vocab_dir = os.path.join(base_dir, 'vocab1_jieba.txt')
+
 save_dir = 'checkpoints/textrnn'
 save_path = os.path.join(save_dir, 'best_validation')  # 最佳验证结果保存路径
 
@@ -136,39 +136,11 @@ def train():
         if flag:  # 同上
             break
 
-def retrain():
-    x_train, y_train = process_file(newfile, word_to_id, cat_to_id, config.seq_length)
-    session = tf.Session()
-    session.run(tf.global_variables_initializer())
-    saver = tf.train.Saver()
-    saver.restore(sess=session,save_path=save_path)
-
-    batch_size = 8
-    data_len = len(x_train)
-    num_batch = int((data_len - 1) / batch_size) + 1
-
-
-    x_val, y_val = process_file(val_dir, word_to_id, cat_to_id, config.seq_length)
-
-    loss_in, acc_in = evaluate(session, x_val, y_val)
-    print ("val loss"+str(loss_in))
-    print ("val acc"+str(acc_in))
-
-    print ("start to deal with file")
-    batch_train = batch_iter(x_train, y_train, config.batch_size)
-    for x_batch, y_batch in batch_train:
-        feed_dict = feed_data(x_batch, y_batch, config.dropout_keep_prob)
-        feed_dict[model.keep_prob] = 1.0
-        loss_train, acc_train = session.run([model.loss, model.acc], feed_dict=feed_dict)
-        loss_val, acc_val = evaluate(session, x_val, y_val)
-        msg = ' Train Loss: {0:>6.2}, Train Acc: {1:>7.2%},' \
-                          + ' Val Loss: {2:>6.2}, Val Acc: {3:>7.2%}'
-        print(msg.format( loss_train, acc_train, loss_val, acc_val))
 
 def test():
     print("Loading test data...")
     start_time = time.time()
-    x_test, y_test = process_file(newfile, word_to_id, cat_to_id, config.seq_length)
+    x_test, y_test = process_file(test_dir, word_to_id, cat_to_id, config.seq_length)
 
     session = tf.Session()
     session.run(tf.global_variables_initializer())
@@ -210,7 +182,7 @@ def test():
 
 
 if __name__ == '__main__':
-    if len(sys.argv) != 2 or sys.argv[1] not in ['retrain','train', 'test']:
+    if len(sys.argv) != 2 or sys.argv[1] not in ['train', 'test']:
         raise ValueError("""usage: python run_rnn.py [train / test]""")
 
     print('Configuring RNN model...')
@@ -224,7 +196,5 @@ if __name__ == '__main__':
 
     if sys.argv[1] == 'train':
         train()
-    elif sys.argv[1] == 'test':
-        test()
     else:
-        retrain()
+        test()

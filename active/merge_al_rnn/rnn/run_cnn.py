@@ -1,4 +1,5 @@
-# coding: utf-8
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
 
 from __future__ import print_function
 
@@ -11,16 +12,16 @@ import numpy as np
 import tensorflow as tf
 from sklearn import metrics
 
-from rnn_model import TRNNConfig, TextRNN
+from cnn_model import TCNNConfig, TextCNN
 from data.cnews_loader import read_vocab, read_category, batch_iter, process_file, build_vocab
 
 base_dir = '/home/ab/Project/al/active/data/yinan/rnn'
 train_dir = os.path.join(base_dir, 'train.txt')
 test_dir = os.path.join(base_dir, 'test.txt')
 val_dir = os.path.join(base_dir, 'val.txt')
-vocab_dir = os.path.join(base_dir, 'cnews.vocab1_jieba.txt')
-newfile = 'labeled16.txt'
-save_dir = 'checkpoints/textrnn'
+vocab_dir = os.path.join(base_dir, 'vocab_cnn.txt')
+
+save_dir = 'checkpoints/textcnn'
 save_path = os.path.join(save_dir, 'best_validation')  # 最佳验证结果保存路径
 
 
@@ -43,7 +44,7 @@ def feed_data(x_batch, y_batch, keep_prob):
 def evaluate(sess, x_, y_):
     """评估在某一数据上的准确率和损失"""
     data_len = len(x_)
-    batch_eval = batch_iter(x_, y_, 8)
+    batch_eval = batch_iter(x_, y_, 128)
     total_loss = 0.0
     total_acc = 0.0
     for x_batch, y_batch in batch_eval:
@@ -59,7 +60,7 @@ def evaluate(sess, x_, y_):
 def train():
     print("Configuring TensorBoard and Saver...")
     # 配置 Tensorboard，重新训练时，请将tensorboard文件夹删除，不然图会覆盖
-    tensorboard_dir = 'tensorboard/textrnn'
+    tensorboard_dir = 'tensorboard/textcnn'
     if not os.path.exists(tensorboard_dir):
         os.makedirs(tensorboard_dir)
 
@@ -99,7 +100,7 @@ def train():
         batch_train = batch_iter(x_train, y_train, config.batch_size)
         for x_batch, y_batch in batch_train:
             feed_dict = feed_data(x_batch, y_batch, config.dropout_keep_prob)
-            
+
             if total_batch % config.save_per_batch == 0:
                 # 每多少轮次将训练结果写入tensorboard scalar
                 s = session.run(merged_summary, feed_dict=feed_dict)
@@ -136,39 +137,11 @@ def train():
         if flag:  # 同上
             break
 
-def retrain():
-    x_train, y_train = process_file(newfile, word_to_id, cat_to_id, config.seq_length)
-    session = tf.Session()
-    session.run(tf.global_variables_initializer())
-    saver = tf.train.Saver()
-    saver.restore(sess=session,save_path=save_path)
-
-    batch_size = 8
-    data_len = len(x_train)
-    num_batch = int((data_len - 1) / batch_size) + 1
-
-
-    x_val, y_val = process_file(val_dir, word_to_id, cat_to_id, config.seq_length)
-
-    loss_in, acc_in = evaluate(session, x_val, y_val)
-    print ("val loss"+str(loss_in))
-    print ("val acc"+str(acc_in))
-
-    print ("start to deal with file")
-    batch_train = batch_iter(x_train, y_train, config.batch_size)
-    for x_batch, y_batch in batch_train:
-        feed_dict = feed_data(x_batch, y_batch, config.dropout_keep_prob)
-        feed_dict[model.keep_prob] = 1.0
-        loss_train, acc_train = session.run([model.loss, model.acc], feed_dict=feed_dict)
-        loss_val, acc_val = evaluate(session, x_val, y_val)
-        msg = ' Train Loss: {0:>6.2}, Train Acc: {1:>7.2%},' \
-                          + ' Val Loss: {2:>6.2}, Val Acc: {3:>7.2%}'
-        print(msg.format( loss_train, acc_train, loss_val, acc_val))
 
 def test():
     print("Loading test data...")
     start_time = time.time()
-    x_test, y_test = process_file(newfile, word_to_id, cat_to_id, config.seq_length)
+    x_test, y_test = process_file(test_dir, word_to_id, cat_to_id, config.seq_length)
 
     session = tf.Session()
     session.run(tf.global_variables_initializer())
@@ -197,7 +170,6 @@ def test():
 
     # 评估
     print("Precision, Recall and F1-Score...")
-    categories = ['simple','complicated','preference']
     print(metrics.classification_report(y_test_cls, y_pred_cls, target_names=categories))
 
     # 混淆矩阵
@@ -210,21 +182,19 @@ def test():
 
 
 if __name__ == '__main__':
-    if len(sys.argv) != 2 or sys.argv[1] not in ['retrain','train', 'test']:
-        raise ValueError("""usage: python run_rnn.py [train / test]""")
+    if len(sys.argv) != 2 or sys.argv[1] not in ['train', 'test']:
+        raise ValueError("""usage: python run_cnn.py [train / test]""")
 
-    print('Configuring RNN model...')
-    config = TRNNConfig()
+    print('Configuring CNN model...')
+    config = TCNNConfig()
     if not os.path.exists(vocab_dir):  # 如果不存在词汇表，重建
         build_vocab(train_dir, vocab_dir, config.vocab_size)
     categories, cat_to_id = read_category()
     words, word_to_id = read_vocab(vocab_dir)
     config.vocab_size = len(words)
-    model = TextRNN(config)
+    model = TextCNN(config)
 
     if sys.argv[1] == 'train':
         train()
-    elif sys.argv[1] == 'test':
-        test()
     else:
-        retrain()
+        test()
