@@ -103,7 +103,7 @@ def main():
         # os.path.dirname(os.path.realpath(__file__)), 'diabetes.txt')
     test_size = 0.3    # the percentage of samples in the dataset that will be
     # randomly selected and assigned to the test set
-    n_labeled = 20      # number of samples that are initially labeled
+    n_labeled = 200      # number of samples that are initially labeled
 
     result = {'E1':[],'E2':[]}
     for i in range(2):
@@ -114,7 +114,7 @@ def main():
         lbr = IdealLabeler(fully_labeled_trn_ds)
 
         #quota = len(y_train) - n_labeled    # number of samples to query
-        quota = 680
+        quota = 480
     # Comparing UncertaintySampling strategy with RandomSampling.
     # model is the base learner, e.g. LogisticRegression, SVM ... etc.
         model = SVM(kernel = 'rbf',decision_function_shape='ovr')
