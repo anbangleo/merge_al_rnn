@@ -8,12 +8,13 @@ import tensorflow.contrib.keras as kr
 
 from rnn_model import TRNNConfig, TextRNN
 from data.cnews_loader import read_category, read_vocab
+import numpy as np
 
 try:
     bool(type(unicode))
 except NameError:
     unicode = str
-base_dir = '/home/ab/Project/al/active/data/yinan/rnn'
+base_dir = '/home/ab/test/al/active/data/yinan/rnn'
 vocab_dir = os.path.join(base_dir, 'cnews.vocab1.txt')
 
 save_dir = 'checkpoints/textrnn'
@@ -46,11 +47,14 @@ class RnnModel:
         y_pred_cls = self.session.run(self.model.y_pred_cls, feed_dict=feed_dict)
         y_pro = self.session.run(self.model.pred_pro, feed_dict = feed_dict)
         print (y_pro)
+        # print (type(y_pro))
+        print (np.cov(y_pro))
         return self.categories[y_pred_cls[0]]
 
 
 if __name__ == '__main__':
     rnn_model = RnnModel()
+
     test_demo = ['哈哈哈，老师说长久不用的拖把上会长出蘑菇，然而我一次都没看到我家拖把上有蘑菇23333','相比传统绘画来说，我个人更喜欢印象派作品，这种随意但不失风采的绘画方式值得我们学习。'
 ,'酚酞溶液变红就一定能确认是氢氧化钠吗？'
 ]

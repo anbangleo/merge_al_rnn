@@ -13,7 +13,7 @@ try:
     bool(type(unicode))
 except NameError:
     unicode = str
-base_dir = '/home/ab/Project/al/active/data/yinan/rnn'
+base_dir = '/home/ab/test/al/active/data/yinan/rnn'
 vocab_dir = os.path.join(base_dir, 'cnews.vocab1.txt')
 
 save_dir = 'checkpoints/textrnn'

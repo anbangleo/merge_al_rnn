@@ -25,8 +25,16 @@ from libact.models import *
 from libact.query_strategies import *
 from libact.labelers import IdealLabeler
 # from cp-cnews_loader import read_vocab, read_category, batch_iter, process_file, build_vocab
-from dealwordindict import read_vocab, read_category, batch_iter, process_file, build_vocab
+try:
+    from data.dealwordindict import read_vocab, read_category, batch_iter, process_file, build_vocab
+except Exception: #ImportError
+    from dealwordindict import read_vocab, read_category, batch_iter, process_file, build_vocab
+# from dealwordindict import read_vocab, read_category, batch_iter, process_file, build_vocab
 import time
+import heapq
+from data.rnnmodel import RNN_Probability_Model
+
+
 from datetime import timedelta
 import gc
 
@@ -37,7 +45,7 @@ def get_time_dif(start_time):
     return time_dif
     # return timedelta(seconds=int(round(time_dif)))
 
-def run(trn_ds, tst_ds, lbr, model, qs, quota, tag):
+def run(trn_ds, tst_ds, lbr, model, qs, quota):
     E_in, E_out = [], []
     i = 1
     for _ in range(quota):
@@ -52,15 +60,55 @@ def run(trn_ds, tst_ds, lbr, model, qs, quota, tag):
         lb = lbr.label(X[ask_id])
         trn_ds.update(ask_id,lb)
         model.train(trn_ds)
-        if tag==0: #svm
-            print (model.predict_real(X[ask_id].reshape(1,-1)))
-        elif tag==2: #lg
-            print (model.predict_real(X[ask_id]))
-        else:
-            pass
+        # if tag==0: #svm
+        #     print (model.predict_real(X[ask_id].reshape(1,-1)))
+        # elif tag==2: #lg
+        #     print (model.predict_real(X[ask_id]))
+        # else:
+        #     pass
         
         E_in = np.append(E_in, 1 - model.score(trn_ds))
         E_out = np.append(E_out, 1 - model.score(tst_ds))
+    return E_in, E_out
+
+
+def runrnn(trn_ds, tst_ds, val_ds, lbr, model, quota):
+    E_in, E_out = [], []
+    intern = 0
+    finalnum = 0
+    if quota % 8 ==0:
+        intern = int(quota / 8)
+    else:
+        intern = int(quota / 8) + 1
+        finalnum = int(quota % 8)
+
+    for t in range(intern):
+
+        scores = model.predict_pro(trn_ds)
+        # first, scores = qs.make_query(return_score=True)
+        unlabeled_entry_ids, X_pool = zip(*trn_ds.get_unlabeled_entries())
+        # number, num_score = zip(*scores)[0], zip(*scores)[1]
+        # num_score_array = np.array(num_score)
+        # max_n = headq.nlargest(8,num_score_array)
+        if t == intern - 1 and finalnum != 0:
+            max_n = heapq.nsmallest(finalnum, range(len(scores)), scores.take)
+        else:
+            max_n = heapq.nsmallest(8, range(len(scores)), scores.take)
+
+
+        # print (max_n)
+
+        X, _ = zip(*trn_ds.data)
+        for ask_id in max_n:
+            real_id = unlabeled_entry_ids[ask_id]
+            lb = lbr.label(X[real_id])
+            trn_ds.update(real_id, lb)
+
+        model.retrain(trn_ds, val_ds)
+
+        E_in = np.append(E_in, 1 - model.score(trn_ds))
+        E_out = np.append(E_out, 1 - model.score(tst_ds))
+
     return E_in, E_out
 
 
@@ -68,8 +116,8 @@ def split_train_test(dataset_filepath, test_size, n_labeled):
     #base_dir = './data/yinan'
     #train_dir = os.path.join(base_dir,'labeled.txt')
     #vocab_dir = os.path.join(base_dir,'vocab_yinan_1.txt')
-    train_dir = '/home/ab/Project/al/active/data/yinan/labeled1.txt'
-    vocab_dir = '/home/ab/Project/al/active/data/yinan/vocab_yinan_3.txt'
+    train_dir = '/home/ab/test/al/active/data/yinan/labeled1.txt'
+    vocab_dir = '/home/ab/test/al/active/data/yinan/vocab_yinan_test_rnn.txt'
     if not os.path.exists(vocab_dir):
         build_vocab(train_dir,vocab_dir,500)
     categories, cat_to_id = read_category()
@@ -90,10 +138,32 @@ def split_train_test(dataset_filepath, test_size, n_labeled):
         train_test_split(x, listy, test_size=test_size)
     trn_ds = Dataset(X_train, np.concatenate(
         [y_train[:n_labeled], [None] * (len(y_train) - n_labeled)]))
-    tst_ds = Dataset(X_test, y_test)
+    fully_tst_ds = Dataset(X_test, y_test)
+
+    X_val, X_real_test, y_val, y_real_test = \
+            train_test_split(X_test, y_test, test_size=0.5)
+
+    tst_ds = Dataset(X_real_test, y_real_test)
+    val_ds = Dataset(X_val, y_val)
+
+    # fully_tst_ds = Dataset(X_test, y_test)
+
+
     fully_labeled_trn_ds = Dataset(X_train, y_train)
 #    print (fully_labeled_trn_ds.get_entries()[0])
-    return trn_ds, tst_ds, y_train, fully_labeled_trn_ds
+    return trn_ds, tst_ds, y_train, fully_labeled_trn_ds, fully_tst_ds, val_ds
+
+
+# def split_test_val(test_ds,test_size):
+#     x,y = test_ds.get_entries()
+#     X_val, X_real_test, y_val, y_real_test = \
+#         train_test_split(x, y, test_size=test_size)
+#     val_ds = Dataset(X_val, y_val)
+#     tst_ds = Dataset(X_test,y_test)
+#
+#     return val_ds, tst_ds
+
+
 
 
 def main():
@@ -103,33 +173,42 @@ def main():
     train_dir = os.path.join(base_dir,'labeled1.txt')
     vocab_dir = os.path.join(base_dir,'vocab_yinan_3.txt')
     test_size = 0.3    # the percentage of samples in the dataset that will be
-    n_labeled = 30      # number of samples that are initially labeled
+    n_labeled = 700     # number of samples that are initially labeled
 
-    result = {'E1':[],'E2':[]}
+    result = {'E1':[],'E2':[],'E3':[]}
     for i in range(2):
-        trn_ds, tst_ds, y_train, fully_labeled_trn_ds = \
+        trn_ds, tst_ds, y_train, fully_labeled_trn_ds,fully_tst_ds,val_ds = \
          split_train_test(train_dir, test_size, n_labeled)
         trn_ds2 = copy.deepcopy(trn_ds)
         trn_ds3 = copy.deepcopy(trn_ds)
         lbr = IdealLabeler(fully_labeled_trn_ds)
 
-        quota = 400
-        qs = UncertaintySampling(trn_ds, method='sm',model=SVM(decision_function_shape='ovr'))
+        quota = 200
+        print (len(trn_ds3.get_labeled_entries()))
+        print(len(tst_ds.get_labeled_entries()))
+        print(len(val_ds.get_labeled_entries()))
+        modelrnn = RNN_Probability_Model()
+        modelrnn.train(trn_ds,val_ds)
+        # qsl = UncertaintySampling(trn_ds3, method='lc', model=LogisticRegression())
+
+        E_in_3, E_out_3 = runrnn(trn_ds3, tst_ds, val_ds, lbr, modelrnn, quota)
+
+
+        # qs = UncertaintySampling(trn_ds, method='sm',model=SVM(decision_function_shape='ovr'))
         model = SVM(kernel='rbf',decision_function_shape='ovr')
-        E_in_1, E_out_1 = run(trn_ds, tst_ds, lbr, model, qs, quota,0)
-        result['E1'].append(E_out_1)
+        # E_in_1, E_out_1 = run(trn_ds, tst_ds, lbr, model, qs, quota)
+        # result['E1'].append(E_out_1)
+
         qs2 = RandomSampling(trn_ds2)
-        E_in_2, E_out_2 = run(trn_ds2, tst_ds, lbr, model, qs2, quota,1)
+        E_in_2, E_out_2 = run(trn_ds2, fully_tst_ds, lbr, model, qs2, quota)
         
         result['E2'].append(E_out_2)
         
-        model = LogisticRegression()
-        qsl = UncertaintySampling(trn_ds3, method='lc', model=LogisticRegression())
-        E_in_3, E_out_3 = run(trn_ds3, tst_ds, lbr, model, qsl, quota,2)
+
         
         result['E3'].append(E_out_3)
 
-    E_out_1 = np.mean(result['E1'],axis=0)
+    # E_out_1 = np.mean(result['E1'],axis=0)
     E_out_2 = np.mean(result['E2'],axis=0)
     E_out_3 = np.mean(result['E3'],axis=0)
     # Plot the learning curve of UncertaintySampling to RandomSampling
@@ -139,7 +218,7 @@ def main():
     plt.figure(figsize=(10,8))
     #plt.plot(query_num, E_in_1, 'b', label='qs Ein')
     #plt.plot(query_num, E_in_2, 'r', label='random Ein')
-    plt.plot(query_num, E_out_1, 'g', label='qs Eout')
+    # plt.plot(query_num, E_out_1, 'g', label='qs Eout')
     plt.plot(query_num, E_out_2, 'k', label='random Eout')
     plt.plot(query_num, E_out_3, 'r', label='logistic Eout')
     plt.xlabel('Number of Queries')
@@ -147,8 +226,8 @@ def main():
     plt.title('Experiment Result')
     plt.legend(loc='upper center', bbox_to_anchor=(0.5, -0.05),
                fancybox=True, shadow=True, ncol=5)
-    plt.savefig('classify.png')
-    #plt.show()
+    plt.savefig('testmerge.png')
+    plt.show()
 
 
 if __name__ == '__main__':

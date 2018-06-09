@@ -7,6 +7,7 @@ import numpy as np
 import tensorflow.contrib.keras as kr
 from sklearn import preprocessing
 import jieba
+from libact.base.dataset import Dataset, import_libsvm_sparse
 
 if sys.version_info[0] > 2:
     is_py3 = True
@@ -101,8 +102,51 @@ def to_words(content, words):
     """将id表示的内容转换为文字"""
     return ''.join(words[x] for x in content)
 
+# def process_al_file(dataset, word_to_id,cat_to_id,max_length=600):
+#     labels,contents = zip(*dataset.format_sklearn())
+#     data_id, label_id = [], []
+#
+#
+#     for line in contents:
+#         try:
+#             if content:
+#                     content = list(jieba.cut(native_content(content)))
+#                     contents.append(content)
+#                     #contents.append(list(native_content(content)))
+#                     labels.append(native_content(label))
+#             except:
+#                 pass
+#     # return contents, labels
+#
+#     for i in range(len(contents)):
+#         data_id.append([word_to_id[x] for x in contents[i] if x in word_to_id])  ##把contents中的每一个词用word_to_id中id表示
+#         label_id.append(cat_to_id[labels[i]])
+#
+#     x_pad = []
+#     res = []
+#     two = []
+#     for i in data_id:
+#         ll = len(i)
+#         rank = 0
+#         q = 0
+#         for j in range(600):
+#             a = i.count(j)
+#             if a > 0:
+#                 res.append(a)
+#             else:
+#                 res.append(0)
+#         x_pad.append(res)
+#         res = []
+#
+#     x_pad = np.array(x_pad)
+#     y_pad = kr.utils.to_categorical(label_id, num_classes=len(cat_to_id))  # 将标签转换为one-hot表示
+#     print("Finish dealing with files!")
+#     return x_pad, y_pad
 
-def process_file(filename, word_to_id, cat_to_id, max_length=600):
+
+
+
+def process_file(filename, word_to_id, cat_to_id, max_length=500):
     """将文件转换为id表示"""
     print ("Start to deal with file...")
     contents, labels = read_file(filename)

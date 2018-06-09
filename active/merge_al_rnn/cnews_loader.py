@@ -2,9 +2,10 @@
 
 import sys
 from collections import Counter
-
+import jieba
 import numpy as np
 import tensorflow.contrib.keras as kr
+import jieba
 
 if sys.version_info[0] > 2:
     is_py3 = True
@@ -48,7 +49,8 @@ def read_file(filename):
             try:
                 label, content = line.strip().split('\t')
                 if content:
-                    contents.append(list(native_content(content)))
+                    content = list(jieba.cut(native_content(content)))
+                    contents.append(content)
                     labels.append(native_content(label))
             except:
                 pass
@@ -83,8 +85,9 @@ def read_vocab(vocab_dir):
 
 def read_category():
     """读取分类目录，固定"""
-    categories = ['体育', '财经', '房产', '家居', '教育', '科技', '时尚', '时政', '游戏', '娱乐']
-
+    #categories = ['体育', '财经', '房产', '家居', '教育', '科技', '时尚', '时政', '游戏', '娱乐']
+#    categories = ['simple','complicated','preference']
+    categories = ['简单','复杂','倾向']
     categories = [native_content(x) for x in categories]
 
     cat_to_id = dict(zip(categories, range(len(categories))))

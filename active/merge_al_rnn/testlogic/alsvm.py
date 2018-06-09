@@ -69,7 +69,7 @@ def split_train_test(dataset_filepath, test_size, n_labeled):
     #base_dir = './data/yinan'
     #train_dir = os.path.join(base_dir,'labeled.txt')
     #vocab_dir = os.path.join(base_dir,'vocab_yinan_1.txt')
-    train_dir = '/home/ab/Project/al/active/data/yinan/labeled1.txt'
+    train_dir = '/home/ab/test/al/active/data/yinan/labeled1.txt'
     categories, cat_to_id = read_category()
 
     x,y = process_file(train_dir, cat_to_id,200)

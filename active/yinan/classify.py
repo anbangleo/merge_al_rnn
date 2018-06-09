@@ -68,8 +68,8 @@ def split_train_test(dataset_filepath, test_size, n_labeled):
     #base_dir = './data/yinan'
     #train_dir = os.path.join(base_dir,'labeled.txt')
     #vocab_dir = os.path.join(base_dir,'vocab_yinan_1.txt')
-    train_dir = '/home/ab/Project/al/active/data/yinan/labeled1.txt'
-    vocab_dir = '/home/ab/Project/al/active/data/yinan/vocab_yinan_3.txt'
+    train_dir = '/home/ab/test/al/active/data/yinan/labeled1.txt'
+    vocab_dir = '/home/ab/test/al/active/data/yinan/vocab_yinan_3.txt'
     if not os.path.exists(vocab_dir):
         build_vocab(train_dir,vocab_dir,500)
     categories, cat_to_id = read_category()

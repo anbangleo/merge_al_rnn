@@ -15,7 +15,7 @@ from sklearn import metrics
 from cnn_model import TCNNConfig, TextCNN
 from data.cnews_loader import read_vocab, read_category, batch_iter, process_file, build_vocab
 
-base_dir = '/home/ab/Project/al/active/data/yinan/rnn'
+base_dir = '/home/ab/test/al/active/data/yinan/rnn'
 train_dir = os.path.join(base_dir, 'train.txt')
 test_dir = os.path.join(base_dir, 'test.txt')
 val_dir = os.path.join(base_dir, 'val.txt')

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="WebServers">
+    <option name="servers">
+      <webServer id="7c8d8a45-9e12-40cb-80e2-8a0a63ccf78b" name="mergernn" url="http://10.2.26.110">
+        <fileTransfer host="10.2.26.110" port="22" rootFolder="/home/ab" accessType="SFTP">
+          <advancedOptions>
+            <advancedOptions dataProtectionLevel="Private" />
+          </advancedOptions>
+          <option name="port" value="22" />
+        </fileTransfer>
+      </webServer>
+    </option>
+  </component>
+</project>

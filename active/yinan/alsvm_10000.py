@@ -69,14 +69,14 @@ def split_train_test(dataset_filepath, test_size, n_labeled):
     #base_dir = './data/yinan'
     #train_dir = os.path.join(base_dir,'labeled.txt')
     #vocab_dir = os.path.join(base_dir,'vocab_yinan_1.txt')
-    train_dir = '/home/ab/Project/al/active/data/yinan/labeled1.txt'
-    vocab_dir = '/home/ab/Project/al/active/data/yinan/vocab_yinan_3.txt'
+    train_dir = '/home/ab/test/al/active/data/yinan/labeled1.txt'
+    vocab_dir = '/home/ab/test/al/active/data/yinan/vocab_yinan_3.txt'
     if not os.path.exists(vocab_dir):
         build_vocab(train_dir,vocab_dir,500)
     categories, cat_to_id = read_category()
     words, word_to_id = read_vocab(vocab_dir)
 
-    x,y = process_file(train_dir,word_to_id, cat_to_id,200)
+    x,y = process_file(train_dir,word_to_id, cat_to_id,500)
     listy = []
     for i in range(np.shape(y)[0]):
         for j in range(np.shape(y)[1]):
