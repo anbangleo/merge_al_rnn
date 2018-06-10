@@ -31,48 +31,20 @@ from active.merge_al_rnn.rnn_model import TRNNConfig, TextRNN
 from sklearn.metrics import accuracy_score
 
 from libact.query_strategies import *
+from sklearn import metrics
+try:
+    bool(type(unicode))
+except NameError:
+    unicode = str
 
 
-class RnnModel:
-    def __init__(self):
-        self.config = TRNNConfig()
-        self.categories, self.cat_to_id = read_category()
-        self.vocab_dir = '/home/ab/test/al/active/data/yinan/rnn/testrnn/vocab1_jieba.txt'
-        self.words, self.word_to_id = read_vocab(self.vocab_dir)
-        self.config.vocab_size = len(self.words)
-        self.model = TextRNN(self.config)
-
-        self.session = tf.Session()
-        self.session.run(tf.global_variables_initializer())
-        self.base_dir = '/home/ab/test/al/active/data/yinan/rnn'
-        # vocab_dir = os.path.join(base_dir, 'cnews.vocab1.txt')
-
-        self.save_dir = 'checkpoints/textrnn'
-        self.save_path = os.path.join(save_dir, 'best_validation')  # 最佳验证结果保存路径
-        saver = tf.train.Saver()
-        saver.restore(sess=self.session, save_path=self.save_path)  # 读取保存的模型
-
-    def predict(self, message):
-        # 支持不论在python2还是python3下训练的模型都可以在2或者3的环境下运行
-        content = unicode(message)
-        data = [self.word_to_id[x] for x in content if x in self.word_to_id]
-
-        feed_dict = {
-            self.model.input_x: kr.preprocessing.sequence.pad_sequences([data], self.config.seq_length),
-            self.model.keep_prob: 1.0
-        }
-        self.categories = ['simple','complicated','preference'] 
-        y_pred_cls = self.session.run(self.model.y_pred_cls, feed_dict=feed_dict)
-        y_pro = self.session.run(self.model.pred_pro, feed_dict = feed_dict)
-        print (y_pro)
-        return self.categories[y_pred_cls[0]],y_pro
 
 
 class RNN_Probability_Model:
     """docstring for RNNmodel"""
     def __init__(self):
-        self.train_dir = '/home/ab/test/al/active/data/yinan/labeled1.txt'
-        self.vocab_dir = '/home/ab/test/al/active/data/yinan/vocab_yinan_3.txt'
+        # self.train_dir = '/home/ab/test/al/active/data/yinan/labeled1.txt'
+        self.vocab_dir = '/home/ab/test/al/active/data/yinan/vocab_yinan_test_rnn3.txt'
         # self.base_dir = '/home/ab/test/al/active/data/yinan/rnn/testrnn/'
         # self.train_dir = os.path.join(self.base_dir, 'train.txt')
         # # self.test_dir = os.path.join(self.base_dir, 'test.txt')
@@ -82,13 +54,16 @@ class RNN_Probability_Model:
         self.save_dir = 'checkpoints/textmergernn'
         self.save_path = os.path.join(self.save_dir, 'best_validation')  # 最佳验证结果保存路径
         self.config = TRNNConfig()
-        if not os.path.exists(self.vocab_dir):  # 如果不存在词汇表，重建
-            build_vocab(self.train_dir, self.vocab_dir, self.config.vocab_size)
+        # if not os.path.exists(self.vocab_dir):  # 如果不存在词汇表，重建
+        #     build_vocab(self.train_dir, self.vocab_dir, self.config.vocab_size)
         self.categories, self.cat_to_id = read_category()
         self.words, self.word_to_id = read_vocab(self.vocab_dir)
         self.config.vocab_size = len(self.words)
         self.model = TextRNN(self.config)
 
+
+        self.session = tf.Session()
+        self.session.run(tf.global_variables_initializer())
 
 
     def get_time_dif(self,start_time):
@@ -147,11 +122,13 @@ class RNN_Probability_Model:
         # print (trn_dataset)
         # print (len(trn_dataset.format_sklearn()))
         x_train, y_train = trn_dataset.format_sklearn()
-        # print (y_train)
+        y_train = kr.utils.to_categorical(y_train, num_classes=3)
+        # print (np.shape(x_train))
+        # print (np.shape(y_train))
+        print (y_train)
 
-        y_train = kr.utils.to_categorical(y_train,num_classes=3)
         x_val, y_val = val_dataset.format_sklearn()
-        y_val = kr.utils.to_categorical(y_val,num_classes=3)
+        y_val = kr.utils.to_categorical(y_val, num_classes=3)
 
         time_dif = self.get_time_dif(start_time)
         print("Time usage:", time_dif)
@@ -210,9 +187,11 @@ class RNN_Probability_Model:
                     break  # 跳出循环
             if flag:  # 同上
                 break
+        return best_acc_val
 
 
-    def retrain(self, trn_dataset, val_dataset):
+    def retrain(self, trn_dataset, val_dataset, best_acc_val):
+        tensorboard_dir = 'tensorboard/textmergernn'
 
         x_train, y_train = trn_dataset.format_sklearn()
         y_train = kr.utils.to_categorical(y_train,num_classes=3)
@@ -220,6 +199,11 @@ class RNN_Probability_Model:
         y_val = kr.utils.to_categorical(y_val,num_classes=3)
         # newdataset = newdataset.format_sklearn()
         # x_train, y_train = process_file(newdataset, self.word_to_id, self.cat_to_id, self.config.seq_length)
+        tf.summary.scalar("loss", self.model.loss)
+        tf.summary.scalar("accuracy", self.model.acc)
+        merged_summary = tf.summary.merge_all()
+        writer = tf.summary.FileWriter(tensorboard_dir)
+
         session = tf.Session()
         session.run(tf.global_variables_initializer())
         saver = tf.train.Saver()
@@ -237,25 +221,75 @@ class RNN_Probability_Model:
         print ("val acc"+str(acc_in))
 
         print ("start to retrain")
-        batch_train = batch_iter(x_train, y_train, self.config.batch_size)
-        for x_batch, y_batch in batch_train:
-            feed_dict = self.feed_data(x_batch, y_batch, self.config.dropout_keep_prob)
-            feed_dict[self.model.keep_prob] = 1.0
-            loss_train, acc_train = session.run([self.model.loss, self.model.acc], feed_dict=feed_dict)
-            loss_val, acc_val = self.evaluate(session, x_val, y_val)
+        total_batch = 0  # 总批次
+        # best_acc_val = 0.0  # 最佳验证集准确率
+        last_improved = 0  # 记录上一次提升批次
+        require_improvement = 20  # 如果超过1000轮未提升，提前结束训练
 
-            if acc_val > best_acc_val:
-                # 保存最好结果
-                best_acc_val = acc_val
-                # last_improved = total_batch
-                saver.save(sess=session, save_path=self.save_path)
-                improved_str = '*'
-            else:
-                improved_str = ''
+        flag = False
+        for epoch in range(self.config.num_epochs):
+            print('Epoch:', epoch + 1)
+            batch_train = batch_iter(x_train, y_train, self.config.batch_size)
+            for x_batch, y_batch in batch_train:
+                feed_dict = self.feed_data(x_batch, y_batch, self.config.dropout_keep_prob)
 
-            msg = ' Train Loss: {0:>6.2}, Train Acc: {1:>7.2%},' \
-                              + ' Val Loss: {2:>6.2}, Val Acc: {3:>7.2%} {4}'
-            print(msg.format( loss_train, acc_train, loss_val, acc_val, improved_str))
+                if total_batch % self.config.save_per_batch == 0:
+                    # 每多少轮次将训练结果写入tensorboard scalar
+                    s = session.run(merged_summary, feed_dict=feed_dict)
+                    writer.add_summary(s, total_batch)
+
+                if total_batch % self.config.print_per_batch == 0:
+                    # 每多少轮次输出在训练集和验证集上的性能
+                    feed_dict[self.model.keep_prob] = 1.0
+                    loss_train, acc_train = session.run([self.model.loss, self.model.acc], feed_dict=feed_dict)
+                    loss_val, acc_val = self.evaluate(session, x_val, y_val)  # todo
+
+                    if acc_val > best_acc_val:
+                        # 保存最好结果
+                        best_acc_val = acc_val
+                        last_improved = total_batch
+                        saver.save(sess=session, save_path=self.save_path)
+                        improved_str = '*'
+                    else:
+                        improved_str = ''
+
+                    # time_dif = self.get_time_dif(start_time)
+                    msg = 'Iter: {0:>6}, Train Loss: {1:>6.2}, Train Acc: {2:>7.2%},' \
+                          + ' Val Loss: {3:>6.2}, Val Acc: {4:>7.2%}, {5}'
+                    print(msg.format(total_batch, loss_train, acc_train, loss_val, acc_val, improved_str))
+
+                session.run(self.model.optim, feed_dict=feed_dict)  # 运行优化
+                total_batch += 1
+
+                if total_batch - last_improved > require_improvement:
+                    # 验证集正确率长期不提升，提前结束训练
+                    print("No optimization for a long time, auto-stopping...")
+                    flag = True
+                    break  # 跳出循环
+            if flag:  # 同上
+                break
+        return best_acc_val
+        # batch_train = batch_iter(x_train, y_train, self.config.batch_size)
+        # for x_batch, y_batch in batch_train:
+        #     feed_dict = self.feed_data(x_batch, y_batch, self.config.dropout_keep_prob)
+        #     feed_dict[self.model.keep_prob] = 1.0
+        #     loss_train, acc_train = session.run([self.model.loss, self.model.acc], feed_dict=feed_dict)
+        #     loss_val, acc_val = self.evaluate(session, x_val, y_val)
+        #
+        #     if acc_val > best_acc_val:
+        #         # 保存最好结果
+        #         best_acc_val = acc_val
+        #         # last_improved = total_batch
+        #         saver.save(sess=session, save_path=self.save_path)
+        #         improved_str = '*'
+        #     else:
+        #         improved_str = ''
+        #
+        #     msg = ' Train Loss: {0:>6.2}, Train Acc: {1:>7.2%},' \
+        #                       + ' Val Loss: {2:>6.2}, Val Acc: {3:>7.2%} {4}'
+        #     print(msg.format( loss_train, acc_train, loss_val, acc_val, improved_str))
+        #
+        # return best_acc_val
 
 
     def score(self, test_dataset):
@@ -265,15 +299,81 @@ class RNN_Probability_Model:
 
 
     def predict_pro(self, askdataset):
-        rnn_model = RnnModel()
+        # rnn_model = RnnModel()
         covlist = []
 
         unlabeled_entry_ids, X_pool = zip(*askdataset.get_unlabeled_entries())
         for i in X_pool:
-            label, pro = rnn_model.predict(i)
+            label, pro = self.predict(i)
             covlist.append(np.cov(pro))
+            print (label)
+            print (pro)
         covlist = np.array(covlist)
         return covlist
+
+
+    def predict(self, message):
+        # 支持不论在python2还是python3下训练的模型都可以在2或者3的环境下运行
+        saver = tf.train.Saver()
+        saver.restore(sess=self.session, save_path=self.save_path)  # 读取保存的模型
+
+        content = unicode(message)
+        data = [self.word_to_id[x] for x in content if x in self.word_to_id]
+
+        feed_dict = {
+            self.model.input_x: kr.preprocessing.sequence.pad_sequences([data], self.config.seq_length),
+            self.model.keep_prob: 1.0
+        }
+        self.categories = ['simple','complicated','preference']
+        y_pred_cls = self.session.run(self.model.y_pred_cls, feed_dict=feed_dict)
+        y_pro = self.session.run(self.model.pred_pro, feed_dict = feed_dict)
+        # print (y_pro)
+        return self.categories[y_pred_cls[0]], y_pro
+
+    def test(self,tst_dst):
+        print("Loading test data...")
+        start_time = time.time()
+        # x_test, y_test = process_file(test_dir, word_to_id, cat_to_id, config.seq_length)
+        x_test, y_test = tst_dst.format_sklearn()
+        y_test = kr.utils.to_categorical(y_test, num_classes=3)
+
+        session = tf.Session()
+        session.run(tf.global_variables_initializer())
+        saver = tf.train.Saver()
+        saver.restore(sess=session, save_path=self.save_path)  # 读取保存的模型
+
+        print('Testing...')
+        loss_test, acc_test = self.evaluate(session, x_test, y_test)
+        msg = 'Test Loss: {0:>6.2}, Test Acc: {1:>7.2%}'
+        print(msg.format(loss_test, acc_test))
+
+        batch_size = 8
+        data_len = len(x_test)
+        num_batch = int((data_len - 1) / batch_size) + 1
+
+        y_test_cls = np.argmax(y_test, 1)
+        y_pred_cls = np.zeros(shape=len(x_test), dtype=np.int32)  # 保存预测结果
+        for i in range(num_batch):  # 逐批次处理
+            start_id = i * batch_size
+            end_id = min((i + 1) * batch_size, data_len)
+            feed_dict = {
+                self.model.input_x: x_test[start_id:end_id],
+                self.model.keep_prob: 1.0
+            }
+            y_pred_cls[start_id:end_id] = session.run(self.model.y_pred_cls, feed_dict=feed_dict)
+
+        # 评估
+        print("Precision, Recall and F1-Score...")
+        categories = ['simple', 'complicated', 'preference']
+        print(metrics.classification_report(y_test_cls, y_pred_cls, target_names=categories))
+
+        # 混淆矩阵
+        print("Confusion Matrix...")
+        cm = metrics.confusion_matrix(y_test_cls, y_pred_cls)
+        print(cm)
+
+        time_dif = self.get_time_dif(start_time)
+        print("Time usage:", time_dif)
 
 
 

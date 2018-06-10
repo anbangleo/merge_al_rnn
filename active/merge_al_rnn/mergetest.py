@@ -72,7 +72,7 @@ def run(trn_ds, tst_ds, lbr, model, qs, quota):
     return E_in, E_out
 
 
-def runrnn(trn_ds, tst_ds, val_ds, lbr, model, quota):
+def runrnn(trn_ds, tst_ds, val_ds, lbr, model, quota, best_val=0.9):
     E_in, E_out = [], []
     intern = 0
     finalnum = 0
@@ -83,6 +83,7 @@ def runrnn(trn_ds, tst_ds, val_ds, lbr, model, quota):
         finalnum = int(quota % 8)
 
     for t in range(intern):
+        print ("this is the "+str(t)+" times to ask")
 
         scores = model.predict_pro(trn_ds)
         # first, scores = qs.make_query(return_score=True)
@@ -97,17 +98,20 @@ def runrnn(trn_ds, tst_ds, val_ds, lbr, model, quota):
 
 
         # print (max_n)
-
         X, _ = zip(*trn_ds.data)
+
+        print (max_n)
         for ask_id in max_n:
             real_id = unlabeled_entry_ids[ask_id]
             lb = lbr.label(X[real_id])
             trn_ds.update(real_id, lb)
 
-        model.retrain(trn_ds, val_ds)
+
+        best_val = model.retrain(trn_ds, val_ds, best_val)
 
         E_in = np.append(E_in, 1 - model.score(trn_ds))
         E_out = np.append(E_out, 1 - model.score(tst_ds))
+        print E_in, E_out
 
     return E_in, E_out
 
@@ -117,13 +121,13 @@ def split_train_test(dataset_filepath, test_size, n_labeled):
     #train_dir = os.path.join(base_dir,'labeled.txt')
     #vocab_dir = os.path.join(base_dir,'vocab_yinan_1.txt')
     train_dir = '/home/ab/test/al/active/data/yinan/labeled1.txt'
-    vocab_dir = '/home/ab/test/al/active/data/yinan/vocab_yinan_test_rnn.txt'
+    vocab_dir = '/home/ab/test/al/active/data/yinan/vocab_yinan_test_rnn3.txt'
     if not os.path.exists(vocab_dir):
-        build_vocab(train_dir,vocab_dir,500)
+        build_vocab(train_dir,vocab_dir,1000)
     categories, cat_to_id = read_category()
     words, word_to_id = read_vocab(vocab_dir)
 
-    x,y = process_file(train_dir,word_to_id, cat_to_id,200)
+    x,y = process_file(train_dir,word_to_id, cat_to_id,600)
     listy = []
     for i in range(np.shape(y)[0]):
         for j in range(np.shape(y)[1]):
@@ -136,8 +140,12 @@ def split_train_test(dataset_filepath, test_size, n_labeled):
 
     X_train, X_test, y_train, y_test = \
         train_test_split(x, listy, test_size=test_size)
+
+    X_train = X_train[:(n_labeled+24)]
     trn_ds = Dataset(X_train, np.concatenate(
-        [y_train[:n_labeled], [None] * (len(y_train) - n_labeled)]))
+        [y_train[:n_labeled], [None] * 24]))
+    # trn_ds = Dataset(X_train, np.concatenate(
+    #     [y_train[:n_labeled], [None] * (len(y_train) - n_labeled)]))
     fully_tst_ds = Dataset(X_test, y_test)
 
     X_val, X_real_test, y_val, y_real_test = \
@@ -171,9 +179,9 @@ def main():
     # path to your binary classification dataset
     base_dir = 'data/yinan'
     train_dir = os.path.join(base_dir,'labeled1.txt')
-    vocab_dir = os.path.join(base_dir,'vocab_yinan_3.txt')
+    vocab_dir = os.path.join(base_dir,'vocab_yinan_4.txt')
     test_size = 0.3    # the percentage of samples in the dataset that will be
-    n_labeled = 700     # number of samples that are initially labeled
+    n_labeled = 600     # number of samples that are initially labeled
 
     result = {'E1':[],'E2':[],'E3':[]}
     for i in range(2):
@@ -183,15 +191,19 @@ def main():
         trn_ds3 = copy.deepcopy(trn_ds)
         lbr = IdealLabeler(fully_labeled_trn_ds)
 
-        quota = 200
-        print (len(trn_ds3.get_labeled_entries()))
-        print(len(tst_ds.get_labeled_entries()))
-        print(len(val_ds.get_labeled_entries()))
+        quota = 40
+        # print (len(trn_ds3.get_labeled_entries()))
+        # print(len(tst_ds.get_labeled_entries()))
+        # print(len(val_ds.get_labeled_entries()))
+
         modelrnn = RNN_Probability_Model()
-        modelrnn.train(trn_ds,val_ds)
+        #best_acc_val =
+        # modelrnn.train(trn_ds3, val_ds)
+        # modelrnn.test(tst_ds)
         # qsl = UncertaintySampling(trn_ds3, method='lc', model=LogisticRegression())
 
         E_in_3, E_out_3 = runrnn(trn_ds3, tst_ds, val_ds, lbr, modelrnn, quota)
+        modelrnn.test(tst_ds)
 
 
         # qs = UncertaintySampling(trn_ds, method='sm',model=SVM(decision_function_shape='ovr'))
@@ -203,9 +215,7 @@ def main():
         E_in_2, E_out_2 = run(trn_ds2, fully_tst_ds, lbr, model, qs2, quota)
         
         result['E2'].append(E_out_2)
-        
 
-        
         result['E3'].append(E_out_3)
 
     # E_out_1 = np.mean(result['E1'],axis=0)

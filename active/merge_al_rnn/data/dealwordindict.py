@@ -146,7 +146,7 @@ def to_words(content, words):
 
 
 
-def process_file(filename, word_to_id, cat_to_id, max_length=500):
+def process_file(filename, word_to_id, cat_to_id, max_length=600):
     """将文件转换为id表示"""
     print ("Start to deal with file...")
     contents, labels = read_file(filename)
@@ -161,25 +161,25 @@ def process_file(filename, word_to_id, cat_to_id, max_length=500):
         # break
         label_id.append(cat_to_id[labels[i]])
 
-    x_pad = []
-    res = []
-    two = []
-    for i in data_id:
-        ll=len(i)
-        rank = 0
-        q = 0
-        for j in range(500):
-           # a = format(float(i.count(j))/float(ll),'.6f')
-            a = i.count(j)
-            if a > 0:
-                res.append(a)
-            else:
-                res.append(0)
-        x_pad.append(res)
-        res=[]
+    # x_pad = []
+    # res = []
+    # two = []
+    # for i in data_id:
+    #     ll=len(i)
+    #     rank = 0
+    #     q = 0
+    #     for j in range(500):
+    #        # a = format(float(i.count(j))/float(ll),'.6f')
+    #         a = i.count(j)
+    #         if a > 0:
+    #             res.append(a)
+    #         else:
+    #             res.append(0)
+    #     x_pad.append(res)
+    #     res=[]
 
-    
-    x_pad = np.array(x_pad)
+    x_pad = kr.preprocessing.sequence.pad_sequences(data_id, max_length)
+    # x_pad = np.array(x_pad)
     #均一化
     #x_pad = preprocessing.scale(x_pad)
 
