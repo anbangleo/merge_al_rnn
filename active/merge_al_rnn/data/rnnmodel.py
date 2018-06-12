@@ -292,10 +292,25 @@ class RNN_Probability_Model:
         # return best_acc_val
 
 
-    def score(self, test_dataset):
+    def score(self, tst_ds):
+        print("Loading test data...")
+        start_time = time.time()
+        # x_test, y_test = process_file(test_dir, word_to_id, cat_to_id, config.seq_length)
+        x_test, y_test = tst_ds.format_sklearn()
+        y_test = kr.utils.to_categorical(y_test, num_classes=3)
+
+        session = tf.Session()
+        session.run(tf.global_variables_initializer())
+        saver = tf.train.Saver()
+        saver.restore(sess=session, save_path=self.save_path)  # 读取保存的模型
+
+        # print('Testing...')
+        loss_test, acc_test = self.evaluate(session, x_test, y_test)
+        # msg = 'Test Loss: {0:>6.2}, Test Acc: {1:>7.2%}'
+        return acc_test
 
         #accuracy_score(y, self.predict(X), sample_weight=sample_weight)
-        return accuracy_score(*(test_dataset.format_sklearn()))
+        # return accuracy_score(*(test_dataset.format_sklearn()))
 
 
     def predict_pro(self, askdataset):
@@ -374,6 +389,8 @@ class RNN_Probability_Model:
 
         time_dif = self.get_time_dif(start_time)
         print("Time usage:", time_dif)
+
+        return acc_test
 
 
 
