@@ -148,7 +148,6 @@ def realrun_qs(trn_ds, tst_ds, lbr, model,qs, quota):
             max_n = heapq.nlargest(8, range(len(num_score_array)), num_score_array.take)
 
         unlabeled_entry_ids, X_pool = zip(*trn_ds.get_unlabeled_entries())
-        print (unlabeled_entry_ids)
 
         X, _ = zip(*trn_ds.data)
         # print (max_n)
@@ -211,12 +210,9 @@ def runrnn(trn_ds, tst_ds, val_ds, lbr, model, quota, best_val):
     return E_out
 
 
-def split_train_test(dataset_filepath, test_size, n_labeled):
-    #base_dir = './data/yinan'
-    #train_dir = os.path.join(base_dir,'labeled.txt')
-    #vocab_dir = os.path.join(base_dir,'vocab_yinan_1.txt')
-    train_dir = './data/labeled1.txt'
-    vocab_dir = './data/vocab_yinan_test_rnn4.txt'
+def split_train_test(train_dir, vocab_dir, test_size, n_labeled):
+    #train_dir = './data/labeled1.txt'
+    #vocab_dir = './data/vocab_yinan_test_rnn4.txt'
     if not os.path.exists(vocab_dir):
         build_vocab(train_dir,vocab_dir,1000)
     categories, cat_to_id = read_category()
@@ -259,16 +255,19 @@ def split_train_test(dataset_filepath, test_size, n_labeled):
 def main():
     # Specifiy the parameters here:
     # path to your binary classification dataset
-    base_dir = 'data/yinan'
-    train_dir = os.path.join(base_dir,'labeled1.txt')
-    vocab_dir = os.path.join(base_dir,'vocab_yinan_4.txt')
+    #base_dir = 'data/yinan'
+    #train_dir = os.path.join(base_dir,'labeled1.txt')
+    #vocab_dir = os.path.join(base_dir,'vocab_yinan_4.txt')
+    train_dir = './data/labeled1.txt'
+    vocab_dir = './data/vocab_yinan_test_rnn4.txt'
+	
     test_size = 0.3    # the percentage of samples in the dataset that will be
     n_labeled = 300     # number of samples that are initially labeled
 
     result = {'E1':[],'E2':[],'E3':[]}
     for i in range(1):
         trn_ds, tst_ds, y_train, fully_labeled_trn_ds,fully_tst_ds,val_ds = \
-         split_train_test(train_dir, test_size, n_labeled)
+         split_train_test(train_dir, vocab_dir, test_size, n_labeled)
         trn_ds2 = copy.deepcopy(trn_ds)
         trn_ds3 = copy.deepcopy(trn_ds)
         lbr = IdealLabeler(fully_labeled_trn_ds)
@@ -293,7 +292,7 @@ def main():
         model = SVM(kernel='rbf',decision_function_shape='ovr')
         E_out_1 = realrun_qs(trn_ds, fully_tst_ds, lbr, model, qs, quota)
 
-        modelrnn = RNN_Probability_Model()
+        modelrnn = RNN_Probability_Model('./vocab_yinan_test_rnn4.txt')
         modelrnn.train(trn_ds3, val_ds)
         test_acc = modelrnn.test(tst_ds)
         E_out_3 = runrnn(trn_ds3, tst_ds, val_ds, lbr, modelrnn, quota, test_acc)

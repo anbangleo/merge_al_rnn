@@ -45,9 +45,9 @@ except NameError:
 
 class RNN_Probability_Model:
     """docstring for RNNmodel"""
-    def __init__(self):
+    def __init__(self,vocabdir):
         # self.train_dir = '/home/ab/test/al/active/data/yinan/labeled1.txt'
-        self.vocab_dir = '/home/ab/test/al/active/data/yinan/vocab_yinan_test_rnn3.txt'
+        self.vocab_dir = vocabdir
         # self.base_dir = '/home/ab/test/al/active/data/yinan/rnn/testrnn/'
         # self.train_dir = os.path.join(self.base_dir, 'train.txt')
         # # self.test_dir = os.path.join(self.base_dir, 'test.txt')
