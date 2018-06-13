@@ -61,12 +61,6 @@ def run(trn_ds, tst_ds, lbr, model, qs, quota):
         lb = lbr.label(X[ask_id])
         trn_ds.update(ask_id,lb)
         model.train(trn_ds)
-        # if tag==0: #svm
-        #     print (model.predict_real(X[ask_id].reshape(1,-1)))
-        # elif tag==2: #lg
-        #     print (model.predict_real(X[ask_id]))
-        # else:
-        #     pass
         
         E_in = np.append(E_in, 1 - model.score(trn_ds))
         E_out = np.append(E_out, 1 - model.score(tst_ds))
@@ -221,8 +215,8 @@ def split_train_test(dataset_filepath, test_size, n_labeled):
     #base_dir = './data/yinan'
     #train_dir = os.path.join(base_dir,'labeled.txt')
     #vocab_dir = os.path.join(base_dir,'vocab_yinan_1.txt')
-    train_dir = '/home/ab/test/al/active/data/yinan/labeled1.txt'
-    vocab_dir = '/home/ab/test/al/active/data/yinan/vocab_yinan_test_rnn4.txt'
+    train_dir = './data/labeled1.txt'
+    vocab_dir = './data/vocab_yinan_test_rnn4.txt'
     if not os.path.exists(vocab_dir):
         build_vocab(train_dir,vocab_dir,1000)
     categories, cat_to_id = read_category()
@@ -287,10 +281,6 @@ def main():
         print(len(fully_tst_ds.get_labeled_entries()))
         print(len(tst_ds.get_labeled_entries()))
         print(len(val_ds.get_labeled_entries()))
-
-
-
-
 
         # result['E1'].append(E_out_1)
         model = SVM(kernel='rbf', decision_function_shape='ovr')

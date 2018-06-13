@@ -18,15 +18,18 @@ except ImportError:
 
 # libact classes
 # from cp-cnews_loader import read_vocab, read_category, batch_iter, process_file, build_vocab
-from active.merge_al_rnn.data.dealwordindict import read_vocab, read_category, batch_iter, build_vocab
+
+
+#from active.merge_al_rnn.data.dealwordindict import read_vocab, read_category, batch_iter, build_vocab
+from .dealwordindict import read_vocab, read_category, batch_iter, build_vocab
 import time
 from datetime import timedelta
 
 import tensorflow as tf
 import tensorflow.contrib.keras as kr
 
-
-from active.merge_al_rnn.rnn_model import TRNNConfig, TextRNN
+from .rnn_model import TRNNConfig, TextRNN
+#from active.merge_al_rnn.rnn_model import TRNNConfig, TextRNN
 # from .cnews_loader import read_category, read_vocab
 from sklearn.metrics import accuracy_score
 
