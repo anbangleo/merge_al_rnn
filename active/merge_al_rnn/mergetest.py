@@ -282,18 +282,18 @@ def main():
         print(len(val_ds.get_labeled_entries()))
 
         # result['E1'].append(E_out_1)
-        model = SVM(kernel='rbf', decision_function_shape='ovr')
-        qs2 = RandomSampling(trn_ds2)
-        E_out_2 = realrun_random(trn_ds2, fully_tst_ds, lbr, model, qs2, quota)
+        #model = SVM(kernel='rbf', decision_function_shape='ovr')
+        #qs2 = RandomSampling(trn_ds2)
+        #E_out_2 = realrun_random(trn_ds2, fully_tst_ds, lbr, model, qs2, quota)
 
 
 
-        qs = UncertaintySampling(trn_ds, method='sm',model=SVM(decision_function_shape='ovr'))
-        model = SVM(kernel='rbf',decision_function_shape='ovr')
-        E_out_1 = realrun_qs(trn_ds, fully_tst_ds, lbr, model, qs, quota)
+        #qs = UncertaintySampling(trn_ds, method='sm',model=SVM(decision_function_shape='ovr'))
+        #model = SVM(kernel='rbf',decision_function_shape='ovr')
+        #E_out_1 = realrun_qs(trn_ds, fully_tst_ds, lbr, model, qs, quota)
 
-        modelrnn = RNN_Probability_Model('./vocab_yinan_test_rnn4.txt')
-        modelrnn.train(trn_ds3, val_ds)
+        modelrnn = RNN_Probability_Model('./data/vocab_yinan_test_rnn4.txt')
+        #modelrnn.train(trn_ds3, val_ds)
         test_acc = modelrnn.test(tst_ds)
         E_out_3 = runrnn(trn_ds3, tst_ds, val_ds, lbr, modelrnn, quota, test_acc)
         # test_acc = modelrnn.test(tst_ds)

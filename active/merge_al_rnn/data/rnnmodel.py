@@ -120,10 +120,6 @@ class RNN_Probability_Model:
         # 载入训练集与验证集
         start_time = time.time()
 
-        # x_train, y_train = process_al_file(trn_dataset, self.word_to_id, self.cat_to_id, self.config.seq_length)
-        # x_val, y_val = process_al_file(val_dataset, self.word_to_id, self.cat_to_id, self.config.seq_length)
-        # print (trn_dataset)
-        # print (len(trn_dataset.format_sklearn()))
         x_train, y_train = trn_dataset.format_sklearn()
         y_train = kr.utils.to_categorical(y_train, num_classes=3)
         # print (np.shape(x_train))
@@ -201,7 +197,6 @@ class RNN_Probability_Model:
         x_val, y_val = val_dataset.format_sklearn()
         y_val = kr.utils.to_categorical(y_val,num_classes=3)
         # newdataset = newdataset.format_sklearn()
-        # x_train, y_train = process_file(newdataset, self.word_to_id, self.cat_to_id, self.config.seq_length)
         tf.summary.scalar("loss", self.model.loss)
         tf.summary.scalar("accuracy", self.model.acc)
         merged_summary = tf.summary.merge_all()
@@ -215,9 +210,6 @@ class RNN_Probability_Model:
         batch_size = 8
         data_len = len(x_train)
         num_batch = int((data_len - 1) / batch_size) + 1
-
-
-        # x_val, y_val = process_file(self.val_dir, self.word_to_id, self.cat_to_id, self.config.seq_length)
 
         loss_in, acc_in = self.evaluate(session, x_val, y_val)
         print ("val loss"+str(loss_in))
@@ -317,15 +309,27 @@ class RNN_Probability_Model:
 
 
     def predict_pro(self, askdataset):
-        # rnn_model = RnnModel()
-        covlist = []
+        saver = tf.train.Saver()
+        saver.restore(sess = self.session, save_path=self.save_path)
+        #feed_dict = self.feed_data(x_batch, y_batch,self.config.dropout_keep_prob)
+	    #feed_dict[self.model.keep_prob] = 1.0
+        x_unlabel,y_unlabel = zip(*askdataset.get_unlabeled_entries())
 
-        unlabeled_entry_ids, X_pool = zip(*askdataset.get_unlabeled_entries())
-        for i in X_pool:
-            label, pro = self.predict(i)
-            covlist.append(np.cov(pro))
-            print (label)
-            print (pro)
+        #print (y_unlabel)		
+        feed_dict = {
+             self.model.input_x: y_unlabel,
+             self.model.keep_prob: 1.0
+        }
+
+		
+		
+        self.categories = ['simple','complicated','preference']
+        y_pred_cls = self.session.run(self.model.y_pred_cls,feed_dict=feed_dict)
+        y_pro = self.session.run(self.model.pred_pro, feed_dict = feed_dict)
+        
+        covlist = []
+        for i in y_pro:
+            covlist.append(np.cov(i))
         covlist = np.array(covlist)
         return covlist
 
@@ -394,10 +398,6 @@ class RNN_Probability_Model:
         print("Time usage:", time_dif)
 
         return acc_test
-
-
-
-
 
 
 
