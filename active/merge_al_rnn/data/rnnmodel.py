@@ -48,13 +48,15 @@ class RNN_Probability_Model:
     def __init__(self,vocabdir):
         # self.train_dir = '/home/ab/test/al/active/data/yinan/labeled1.txt'
         self.vocab_dir = vocabdir
-        # self.base_dir = '/home/ab/test/al/active/data/yinan/rnn/testrnn/'
+        self.tensorboard_dir = 'tensorboard/textmergernn_test_xpad'
+		
+		# self.base_dir = '/home/ab/test/al/active/data/yinan/rnn/testrnn/'
         # self.train_dir = os.path.join(self.base_dir, 'train.txt')
         # # self.test_dir = os.path.join(self.base_dir, 'test.txt')
         # # self.val_dir = os.path.join(self.base_dir, 'val.txt')
         # self.vocab_dir = os.path.join(self.base_dir, 'vocab1_jieba.txt')
 
-        self.save_dir = 'checkpoints/textmergernn'
+        self.save_dir = 'checkpoints/textmergernn_test_xpad'
         self.save_path = os.path.join(self.save_dir, 'best_validation')  # 最佳验证结果保存路径
         self.config = TRNNConfig()
         # if not os.path.exists(self.vocab_dir):  # 如果不存在词汇表，重建
@@ -102,7 +104,7 @@ class RNN_Probability_Model:
         # newdataset = dataset.format_sklearn()
         print("Configuring TensorBoard and Saver...")
         # 配置 Tensorboard，重新训练时，请将tensorboard文件夹删除，不然图会覆盖
-        tensorboard_dir = 'tensorboard/textmergernn'
+        tensorboard_dir = self.tensorboard_dir
         if not os.path.exists(tensorboard_dir):
             os.makedirs(tensorboard_dir)
 
@@ -190,7 +192,7 @@ class RNN_Probability_Model:
 
 
     def retrain(self, trn_dataset, val_dataset, best_acc_val):
-        tensorboard_dir = 'tensorboard/textmergernn'
+        tensorboard_dir = self.tensorboard_dir
 
         x_train, y_train = trn_dataset.format_sklearn()
         y_train = kr.utils.to_categorical(y_train,num_classes=3)

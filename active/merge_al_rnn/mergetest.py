@@ -110,7 +110,7 @@ def realrun_random(trn_ds, tst_ds, lbr, model, qs, quota):
         # E_in = np.append(E_in, 1 - model.score(trn_ds))
         E_out = np.append(E_out, 1 - model.score(tst_ds))
         # print (E_in)
-        # print (E_out)
+        print (E_out)
 
     return E_out
 def realrun_qs(trn_ds, tst_ds, lbr, model,qs, quota):
@@ -161,7 +161,7 @@ def realrun_qs(trn_ds, tst_ds, lbr, model,qs, quota):
         # E_in = np.append(E_in, 1 - model.score(trn_ds))
         E_out = np.append(E_out, 1 - model.score(tst_ds))
         # print (E_in)
-        # print (E_out)
+        print (E_out)
 
     return E_out
 
@@ -259,7 +259,7 @@ def main():
     #train_dir = os.path.join(base_dir,'labeled1.txt')
     #vocab_dir = os.path.join(base_dir,'vocab_yinan_4.txt')
     train_dir = './data/labeled1.txt'
-    vocab_dir = './data/vocab_yinan_test_rnn4.txt'
+    vocab_dir = './data/vocab_yinan_test_rnn5.txt'
 	
     test_size = 0.3    # the percentage of samples in the dataset that will be
     n_labeled = 300     # number of samples that are initially labeled
@@ -281,15 +281,15 @@ def main():
         print(len(tst_ds.get_labeled_entries()))
         print(len(val_ds.get_labeled_entries()))
 
-        modelrnn = RNN_Probability_Model('./data/vocab_yinan_test_rnn4.txt')
-        #modelrnn.train(trn_ds3, val_ds)
+        modelrnn = RNN_Probability_Model(vocab_dir)
+        modelrnn.train(trn_ds3, val_ds)
         test_acc = modelrnn.test(val_ds)
         E_out_3 = runrnn(trn_ds3, tst_ds, val_ds, lbr, modelrnn, quota, test_acc)
 
         # result['E1'].append(E_out_1)
         model = SVM(kernel='rbf', decision_function_shape='ovr')
         qs2 = RandomSampling(trn_ds2)
-        E_out_2 = realrun_random(trn_ds2, fully_tst_ds, lbr, model, qs2, quota)
+        E_out_2 = realrun_random(trn_ds2, tst_ds, lbr, model, qs2, quota)
 
 
 
