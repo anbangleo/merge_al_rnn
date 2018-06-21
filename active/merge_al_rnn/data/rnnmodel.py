@@ -126,7 +126,7 @@ class RNN_Probability_Model:
         y_train = kr.utils.to_categorical(y_train, num_classes=3)
         # print (np.shape(x_train))
         # print (np.shape(y_train))
-        print (y_train)
+        # print (y_train)
 
         x_val, y_val = val_dataset.format_sklearn()
         y_val = kr.utils.to_categorical(y_val, num_classes=3)
@@ -214,8 +214,8 @@ class RNN_Probability_Model:
         num_batch = int((data_len - 1) / batch_size) + 1
 
         loss_in, acc_in = self.evaluate(session, x_val, y_val)
-        print ("val loss"+str(loss_in))
-        print ("val acc"+str(acc_in))
+        # print ("val loss"+str(loss_in))
+        # print ("val acc"+str(acc_in))
 
         print ("start to retrain")
         total_batch = 0  # 总批次

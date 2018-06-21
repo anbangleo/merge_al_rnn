@@ -189,6 +189,21 @@ def process_file(filename, word_to_id, cat_to_id, max_length=600):
     print ("Finish dealing with files!")
     return x_pad, y_pad
 
+def process_file_rnn(filename, word_to_id, cat_to_id, max_length=600):
+    """将文件转换为id表示"""
+    print ("Start to deal with file...")
+    contents, labels = read_file(filename)
+    data_id, label_id = [], []
+    for i in range(len(contents)):
+        data_id.append([word_to_id[x] for x in contents[i] if x in word_to_id])##把contents中的每一个词用word_to_id中id表示
+        label_id.append(cat_to_id[labels[i]])
+
+
+
+    # x_pad = kr.preprocessing.sequence.pad_sequences(data_id, max_length)
+    # y_pad = kr.utils.to_categorical(label_id, num_classes=len(cat_to_id))  # 将标签转换为one-hot表示
+    print ("Finish dealing with files!")
+    return data_id, label_id
 
 def batch_iter(x, y, batch_size=64):
     """生成批次数据"""
