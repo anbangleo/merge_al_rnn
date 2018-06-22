@@ -178,6 +178,8 @@ def runrnn(trn_ds, tst_ds, val_ds, lbr, model, quota, best_val):
 
     for t in range(intern):
         print ("[RNN]this is the "+str(t)+" times to ask")
+        x_first_train = []
+        y_first_train = []
 
         scores = model.predict_pro(trn_ds)
         # first, scores = qs.make_query(return_score=True)
@@ -199,9 +201,17 @@ def runrnn(trn_ds, tst_ds, val_ds, lbr, model, quota, best_val):
             real_id = unlabeled_entry_ids[ask_id]
             lb = lbr.label(X[real_id])
             trn_ds.update(real_id, lb)
+            x_first_train.append(X[real_id])
+            y_first_train.append(lb)
 
+        x_first_train = np.array(x_first_train)
+        y_first_train = np.array(y_first_train)
 
-        best_val = model.retrain(trn_ds, val_ds, best_val)
+        first_train = Dataset(x_first_train,y_first_train)
+
+        x_first_train, y_first_train = first_train.format_sklearn()
+
+        best_val = model.retrain(trn_ds, val_ds, best_val, first_train)
 
         # E_in = np.append(E_in, 1 - model.score(trn_ds))
         E_out = np.append(E_out, 1 - model.score(tst_ds))
@@ -358,10 +368,11 @@ def main():
         print (len(tst_ds_rnn.get_labeled_entries()))
         print (len(val_ds_rnn.get_labeled_entries()))
 
-        # modelrnn = RNN_Probability_Model(vocab_dir)
-        # modelrnn.train(trn_ds_rnn, val_ds_rnn)
-        # test_acc = modelrnn.test(val_ds_rnn)
-        # E_out_3 = runrnn(trn_ds_rnn, tst_ds_rnn, val_ds_rnn, lbr_rnn, modelrnn, quota, test_acc)
+        modelrnn = RNN_Probability_Model(vocab_dir)
+        modelrnn.train(trn_ds_rnn, val_ds_rnn)
+        #test_acc = 0.5       
+        test_acc = modelrnn.test(val_ds_rnn)
+        E_out_3 = runrnn(trn_ds_rnn, tst_ds_rnn, val_ds_rnn, lbr_rnn, modelrnn, quota, test_acc)
 
         # result['E1'].append(E_out_1)
         model = SVM(kernel='rbf', decision_function_shape='ovr')
@@ -384,7 +395,7 @@ def main():
 
 
 
-    # E_out_1 = np.mean(result['E1'],axis=0)
+    E_out_1 = np.mean(result['E1'],axis=0)
     E_out_2 = np.mean(result['E2'],axis=0)
     E_out_3 = np.mean(result['E3'],axis=0)
     # Plot the learning curve of UncertaintySampling to RandomSampling
@@ -409,7 +420,7 @@ def main():
     plt.title('Experiment Result')
     plt.legend(loc='upper center', bbox_to_anchor=(0.5, -0.05),
                fancybox=True, shadow=True, ncol=5)
-    plt.savefig('testmerge_rnn.png')
+    plt.savefig('testmerge_rnn_0617.png')
     plt.show()
 
 

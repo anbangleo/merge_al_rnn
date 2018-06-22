@@ -150,6 +150,8 @@ class RNN_Probability_Model:
         for epoch in range(self.config.num_epochs):
             print('Epoch:', epoch + 1)
             batch_train = batch_iter(x_train, y_train, self.config.batch_size)
+
+
             for x_batch, y_batch in batch_train:
                 feed_dict = self.feed_data(x_batch, y_batch, self.config.dropout_keep_prob)
                 
@@ -191,13 +193,17 @@ class RNN_Probability_Model:
         return best_acc_val
 
 
-    def retrain(self, trn_dataset, val_dataset, best_acc_val):
+    def retrain(self, trn_dataset, val_dataset, best_acc_val, first_train):
         tensorboard_dir = self.tensorboard_dir
 
         x_train, y_train = trn_dataset.format_sklearn()
         y_train = kr.utils.to_categorical(y_train,num_classes=3)
         x_val, y_val = val_dataset.format_sklearn()
         y_val = kr.utils.to_categorical(y_val,num_classes=3)
+
+        x_first_train, y_first_train = first_train.format_sklearn()
+        y_first_train = kr.utils.to_categorical(y_first_train,num_classes=3)
+
         # newdataset = newdataset.format_sklearn()
         tf.summary.scalar("loss", self.model.loss)
         tf.summary.scalar("accuracy", self.model.acc)
@@ -222,6 +228,21 @@ class RNN_Probability_Model:
         # best_acc_val = 0.0  # 最佳验证集准确率
         last_improved = 0  # 记录上一次提升批次
         require_improvement = 40  # 如果超过1000轮未提升，提前结束训练
+
+        
+        #train the new labeled
+        if len(x_first_train) == batch_size:
+            feed_dict_first = self.feed_data(x_first_train, y_first_train, self.config.dropout_keep_prob)
+            feed_dict_first[self.model.keep_prob] = 1.0
+            loss_train, acc_train = session.run([self.model.loss, self.model.acc], feed_dict=feed_dict_first)
+            loss_val_first, acc_val_first = self.evaluate(session, x_val, y_val)
+
+            print ("first retrain acc:")
+            print (acc_val_first)
+            if acc_val_first > best_acc_val:
+                saver.save(sess=session, save_path=self.save_path)
+                best_acc_val = acc_val_first
+                print ("Good Retrain!")
 
         flag = False
         for epoch in range(self.config.num_epochs):
