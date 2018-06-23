@@ -45,26 +45,23 @@ except NameError:
 
 class RNN_Probability_Model:
     """docstring for RNNmodel"""
-    def __init__(self,vocabdir):
-        # self.train_dir = '/home/ab/test/al/active/data/yinan/labeled1.txt'
-        self.vocab_dir = vocabdir
-        self.tensorboard_dir = 'tensorboard/textmergernn_test_xpad'
-		
-		# self.base_dir = '/home/ab/test/al/active/data/yinan/rnn/testrnn/'
-        # self.train_dir = os.path.join(self.base_dir, 'train.txt')
-        # # self.test_dir = os.path.join(self.base_dir, 'test.txt')
-        # # self.val_dir = os.path.join(self.base_dir, 'val.txt')
-        # self.vocab_dir = os.path.join(self.base_dir, 'vocab1_jieba.txt')
+    def __init__(self, vocabdir, wordslength, batchsize, numclass, categories_class):
 
-        self.save_dir = 'checkpoints/textmergernn_test_xpad'
+        self.vocab_dir = vocabdir
+        self.tensorboard_dir = 'tensorboard/textmergernn_test_5000'
+        self.numclass = numclass
+        self.wordslength = wordslength
+
+        self.batchsize = batchsize
+        self.save_dir = 'checkpoints/textmergernn_test_5000'
         self.save_path = os.path.join(self.save_dir, 'best_validation')  # 最佳验证结果保存路径
         self.config = TRNNConfig()
-        # if not os.path.exists(self.vocab_dir):  # 如果不存在词汇表，重建
-        #     build_vocab(self.train_dir, self.vocab_dir, self.config.vocab_size)
-        self.categories, self.cat_to_id = read_category()
+        self.categories, self.cat_to_id = read_category(categories_class)
         self.words, self.word_to_id = read_vocab(self.vocab_dir)
         self.config.vocab_size = len(self.words)
         self.model = TextRNN(self.config)
+        self.inittraintimes = 300
+        self.retraintimes = 200
 
 
         self.session = tf.Session()
@@ -88,7 +85,7 @@ class RNN_Probability_Model:
     def evaluate(self, sess, x_, y_):
         """评估在某一数据上的准确率和损失"""
         data_len = len(x_)
-        batch_eval = batch_iter(x_, y_, 8)
+        batch_eval = batch_iter(x_, y_, self.batchsize)
         total_loss = 0.0
         total_acc = 0.0
         for x_batch, y_batch in batch_eval:
@@ -123,13 +120,13 @@ class RNN_Probability_Model:
         start_time = time.time()
 
         x_train, y_train = trn_dataset.format_sklearn()
-        y_train = kr.utils.to_categorical(y_train, num_classes=3)
+        y_train = kr.utils.to_categorical(y_train, num_classes=self.numclass)
         # print (np.shape(x_train))
         # print (np.shape(y_train))
         # print (y_train)
 
         x_val, y_val = val_dataset.format_sklearn()
-        y_val = kr.utils.to_categorical(y_val, num_classes=3)
+        y_val = kr.utils.to_categorical(y_val, num_classes=self.numclass)
 
         time_dif = self.get_time_dif(start_time)
         print("Time usage:", time_dif)
@@ -144,12 +141,12 @@ class RNN_Probability_Model:
         total_batch = 0  # 总批次
         best_acc_val = 0.0  # 最佳验证集准确率
         last_improved = 0  # 记录上一次提升批次
-        require_improvement = 50  # 如果超过1000轮未提升，提前结束训练
+        require_improvement =  self.inittraintimes  # 如果超过1000轮未提升，提前结束训练
 
         flag = False
         for epoch in range(self.config.num_epochs):
             print('Epoch:', epoch + 1)
-            batch_train = batch_iter(x_train, y_train, self.config.batch_size)
+            batch_train = batch_iter(x_train, y_train, self.batchsize)
 
 
             for x_batch, y_batch in batch_train:
@@ -197,12 +194,12 @@ class RNN_Probability_Model:
         tensorboard_dir = self.tensorboard_dir
 
         x_train, y_train = trn_dataset.format_sklearn()
-        y_train = kr.utils.to_categorical(y_train,num_classes=3)
+        y_train = kr.utils.to_categorical(y_train,num_classes=self.numclass)
         x_val, y_val = val_dataset.format_sklearn()
-        y_val = kr.utils.to_categorical(y_val,num_classes=3)
+        y_val = kr.utils.to_categorical(y_val,num_classes=self.numclass)
 
         x_first_train, y_first_train = first_train.format_sklearn()
-        y_first_train = kr.utils.to_categorical(y_first_train,num_classes=3)
+        y_first_train = kr.utils.to_categorical(y_first_train,num_classes=self.numclass)
 
         # newdataset = newdataset.format_sklearn()
         tf.summary.scalar("loss", self.model.loss)
@@ -215,7 +212,7 @@ class RNN_Probability_Model:
         saver = tf.train.Saver()
         saver.restore(sess=session,save_path=self.save_path)
 
-        batch_size = 8
+        batch_size = self.batchsize
         data_len = len(x_train)
         num_batch = int((data_len - 1) / batch_size) + 1
 
@@ -227,7 +224,7 @@ class RNN_Probability_Model:
         total_batch = 0  # 总批次
         # best_acc_val = 0.0  # 最佳验证集准确率
         last_improved = 0  # 记录上一次提升批次
-        require_improvement = 40  # 如果超过1000轮未提升，提前结束训练
+        require_improvement = self.retraintimes  # 如果超过1000轮未提升，提前结束训练
 
         
         #train the new labeled
@@ -247,7 +244,7 @@ class RNN_Probability_Model:
         flag = False
         for epoch in range(self.config.num_epochs):
             print('Epoch:', epoch + 1)
-            batch_train = batch_iter(x_train, y_train, self.config.batch_size)
+            batch_train = batch_iter(x_train, y_train, self.batchsize)
             for x_batch, y_batch in batch_train:
                 feed_dict = self.feed_data(x_batch, y_batch, self.config.dropout_keep_prob)
 
@@ -287,27 +284,6 @@ class RNN_Probability_Model:
             if flag:  # 同上
                 break
         return best_acc_val
-        # batch_train = batch_iter(x_train, y_train, self.config.batch_size)
-        # for x_batch, y_batch in batch_train:
-        #     feed_dict = self.feed_data(x_batch, y_batch, self.config.dropout_keep_prob)
-        #     feed_dict[self.model.keep_prob] = 1.0
-        #     loss_train, acc_train = session.run([self.model.loss, self.model.acc], feed_dict=feed_dict)
-        #     loss_val, acc_val = self.evaluate(session, x_val, y_val)
-        #
-        #     if acc_val > best_acc_val:
-        #         # 保存最好结果
-        #         best_acc_val = acc_val
-        #         # last_improved = total_batch
-        #         saver.save(sess=session, save_path=self.save_path)
-        #         improved_str = '*'
-        #     else:
-        #         improved_str = ''
-        #
-        #     msg = ' Train Loss: {0:>6.2}, Train Acc: {1:>7.2%},' \
-        #                       + ' Val Loss: {2:>6.2}, Val Acc: {3:>7.2%} {4}'
-        #     print(msg.format( loss_train, acc_train, loss_val, acc_val, improved_str))
-        #
-        # return best_acc_val
 
 
     def score(self, tst_ds):
@@ -315,7 +291,7 @@ class RNN_Probability_Model:
         start_time = time.time()
         # x_test, y_test = process_file(test_dir, word_to_id, cat_to_id, config.seq_length)
         x_test, y_test = tst_ds.format_sklearn()
-        y_test = kr.utils.to_categorical(y_test, num_classes=3)
+        y_test = kr.utils.to_categorical(y_test, num_classes=self.numclass)
 
         session = tf.Session()
         session.run(tf.global_variables_initializer())
@@ -324,11 +300,8 @@ class RNN_Probability_Model:
 
         # print('Testing...')
         loss_test, acc_test = self.evaluate(session, x_test, y_test)
-        # msg = 'Test Loss: {0:>6.2}, Test Acc: {1:>7.2%}'
         return acc_test
 
-        #accuracy_score(y, self.predict(X), sample_weight=sample_weight)
-        # return accuracy_score(*(test_dataset.format_sklearn()))
 
 
     def predict_pro(self, askdataset):
@@ -338,7 +311,6 @@ class RNN_Probability_Model:
 	    #feed_dict[self.model.keep_prob] = 1.0
         x_unlabel,y_unlabel = zip(*askdataset.get_unlabeled_entries())
 
-        #print (y_unlabel)		
         feed_dict = {
              self.model.input_x: y_unlabel,
              self.model.keep_prob: 1.0
@@ -366,7 +338,7 @@ class RNN_Probability_Model:
         data = [self.word_to_id[x] for x in content if x in self.word_to_id]
 
         feed_dict = {
-            self.model.input_x: kr.preprocessing.sequence.pad_sequences([data], self.config.seq_length),
+            self.model.input_x: kr.preprocessing.sequence.pad_sequences([data], self.wordslength),
             self.model.keep_prob: 1.0
         }
         self.categories = ['simple','complicated','preference']
@@ -380,7 +352,7 @@ class RNN_Probability_Model:
         start_time = time.time()
         # x_test, y_test = process_file(test_dir, word_to_id, cat_to_id, config.seq_length)
         x_test, y_test = tst_dst.format_sklearn()
-        y_test = kr.utils.to_categorical(y_test, num_classes=3)
+        y_test = kr.utils.to_categorical(y_test, num_classes=self.numclass)
 
         session = tf.Session()
         session.run(tf.global_variables_initializer())
@@ -392,7 +364,7 @@ class RNN_Probability_Model:
         msg = 'Test Loss: {0:>6.2}, Test Acc: {1:>7.2%}'
         print(msg.format(loss_test, acc_test))
 
-        batch_size = 8
+        batch_size = self.batchsize
         data_len = len(x_test)
         num_batch = int((data_len - 1) / batch_size) + 1
 

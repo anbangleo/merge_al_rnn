@@ -33,8 +33,9 @@ except Exception: #ImportError
 # from dealwordindict import read_vocab, read_category, batch_iter, process_file, build_vocab
 import time
 import heapq
-from data.rnnmodel import RNN_Probability_Model
+from data.rnnmodel import RNN_Probability_Model,TRNNConfig
 import random
+
 # import zip
 
 from datetime import timedelta
@@ -45,84 +46,45 @@ def get_time_dif(start_time):
     end_time = time.time()
     time_dif = end_time - start_time
     return time_dif
-    # return timedelta(seconds=int(round(time_dif)))
-
-def run(trn_ds, tst_ds, lbr, model, qs, quota):
-    E_in, E_out = [], []
-    i = 1
-    for _ in range(quota):
-        
-        start_time = time.time()
-        ask_id = qs.make_query()
-        print (str(i)+"th times to ask.======================")
-        time_dif = get_time_dif(start_time)
-
-        i = i + 1
-        X, _ = zip(*trn_ds.data)
-        lb = lbr.label(X[ask_id])
-        trn_ds.update(ask_id,lb)
-        model.train(trn_ds)
-        
-        E_in = np.append(E_in, 1 - model.score(trn_ds))
-        E_out = np.append(E_out, 1 - model.score(tst_ds))
-    return E_in, E_out
 
 
-def realrun_random(trn_ds, tst_ds, lbr, model, qs, quota):
+def realrun_random(trn_ds, tst_ds, lbr, model, qs, quota, batchsize):
     E_in, E_out = [], []
     intern = 0
     finalnum = 0
     if quota % 8 == 0:
-        intern = int(quota / 8)
+        intern = int(quota / batchsize)
     else:
-        intern = int(quota / 8) + 1
-        finalnum = int(quota % 8)
+        intern = int(quota / batchsize ) + 1
+        finalnum = int(quota % batchsize)
 
     for t in range(intern):
         print ("[Random]this is the "+str(t)+" times to ask")
-
-        # scores = model.predict_pro(trn_ds)
-        # unlabeled_entry_ids, X_pool = zip(*trn_ds.get_unlabeled_entries())
-        # first, scores = qs.make_query(return_score=True)
-
-        # python 2&&python3
-        # number, num_score = zip(*scores)[0], zip(*scores)[1]
-        # num_score = next(zip*scores)
-        # itscore = zip(*scores)
-        # number = next(itscore)
-        # num_score = next(itscore)
-
-        # num_score_array = np.array(num_score)
-        # max_n = heapq.nlargest(quota, range(len(num_score_array)), num_score_array.take)
         unlabeled_entry_ids, X_pool = zip(*trn_ds.get_unlabeled_entries())
         if t == intern - 1 and finalnum != 0:
             max_n = random.sample(unlabeled_entry_ids,finalnum)
         else:
-            max_n = random.sample(unlabeled_entry_ids, 8)
+            max_n = random.sample(unlabeled_entry_ids, batchsize)
 
         X, _ = zip(*trn_ds.data)
-        # print (max_n)
         for ask_id in max_n:
             lb = lbr.label(X[ask_id])
             trn_ds.update(ask_id, lb)
 
         model.train(trn_ds)
-
-        # E_in = np.append(E_in, 1 - model.score(trn_ds))
         E_out = np.append(E_out, 1 - model.score(tst_ds))
-        # print (E_in)
         print (E_out)
 
     return E_out
-def realrun_qs(trn_ds, tst_ds, lbr, model,qs, quota):
+def realrun_qs(trn_ds, tst_ds, lbr, model,qs, quota, batchsize):
     E_in, E_out = [], []
     intern = 0
     finalnum = 0
-    if quota % 8 == 0:
-        intern = int( quota / 8)
+    if quota % batchsize == 0:
+        intern = int( quota / batchsize)
     else:
-        intern = int(quota / 8) + 1
-        finalnum = int(quota % 8)
+        intern = int(quota / batchsize) + 1
+        finalnum = int(quota % batchsize)
 
     for t in range(intern):
         print ("[QS]this is the "+str(t)+" times to ask")
@@ -146,7 +108,7 @@ def realrun_qs(trn_ds, tst_ds, lbr, model,qs, quota):
         if t == intern - 1 and finalnum != 0:
             max_n = heapq.nlargest(finalnum, range(len(num_score_array)), num_score_array.take)
         else:
-            max_n = heapq.nlargest(8, range(len(num_score_array)), num_score_array.take)
+            max_n = heapq.nlargest(batchsize, range(len(num_score_array)), num_score_array.take)
 
         unlabeled_entry_ids, X_pool = zip(*trn_ds.get_unlabeled_entries())
 
@@ -166,15 +128,15 @@ def realrun_qs(trn_ds, tst_ds, lbr, model,qs, quota):
 
     return E_out
 
-def runrnn(trn_ds, tst_ds, val_ds, lbr, model, quota, best_val):
+def runrnn(trn_ds, tst_ds, val_ds, lbr, model, quota, best_val, batchsize):
     E_in, E_out = [], []
     intern = 0
     finalnum = 0
-    if quota % 8 == 0:
-        intern = int( quota / 8)
+    if quota % batchsize == 0:
+        intern = int( quota / batchsize)
     else:
-        intern = int(quota / 8) + 1
-        finalnum = int(quota % 8)
+        intern = int(quota / batchsize) + 1
+        finalnum = int(quota % batchsize)
 
     for t in range(intern):
         print ("[RNN]this is the "+str(t)+" times to ask")
@@ -182,18 +144,15 @@ def runrnn(trn_ds, tst_ds, val_ds, lbr, model, quota, best_val):
         y_first_train = []
 
         scores = model.predict_pro(trn_ds)
-        # first, scores = qs.make_query(return_score=True)
+
         unlabeled_entry_ids, X_pool = zip(*trn_ds.get_unlabeled_entries())
-        # number, num_score = zip(*scores)[0], zip(*scores)[1]
-        # num_score_array = np.array(num_score)
-        # max_n = headq.nlargest(8,num_score_array)
+
         if t == intern - 1 and finalnum != 0:
             max_n = heapq.nsmallest(finalnum, range(len(scores)), scores.take)
         else:
-            max_n = heapq.nsmallest(8, range(len(scores)), scores.take)
+            max_n = heapq.nsmallest(batchsize, range(len(scores)), scores.take)
 
 
-        # print (max_n)
         X, _ = zip(*trn_ds.data)
 
         print (max_n)
@@ -209,8 +168,6 @@ def runrnn(trn_ds, tst_ds, val_ds, lbr, model, quota, best_val):
 
         first_train = Dataset(x_first_train,y_first_train)
 
-        x_first_train, y_first_train = first_train.format_sklearn()
-
         best_val = model.retrain(trn_ds, val_ds, best_val, first_train)
 
         # E_in = np.append(E_in, 1 - model.score(trn_ds))
@@ -221,7 +178,7 @@ def runrnn(trn_ds, tst_ds, val_ds, lbr, model, quota, best_val):
     return E_out
 
 
-def split_train_test(train_dir, vocab_dir, test_size, n_labeled):
+def split_train_test(train_dir, vocab_dir, test_size, n_labeled, wordslength):
     #train_dir = './data/labeled1.txt'
     #vocab_dir = './data/vocab_yinan_test_rnn4.txt'
     if not os.path.exists(vocab_dir):
@@ -229,7 +186,7 @@ def split_train_test(train_dir, vocab_dir, test_size, n_labeled):
     categories, cat_to_id = read_category()
     words, word_to_id = read_vocab(vocab_dir)
 
-    x,y = process_file(train_dir, word_to_id, cat_to_id,600)
+    x,y = process_file(train_dir, word_to_id, cat_to_id, wordslength)
     # x_rnn, y_rnn = process_file_rnn(train_dir, word_to_id, cat_to_id, 600)
 
     listy = []
@@ -256,21 +213,17 @@ def split_train_test(train_dir, vocab_dir, test_size, n_labeled):
     tst_ds = Dataset(X_real_test, y_real_test)
     val_ds = Dataset(X_val, y_val)
 
-
-
     fully_labeled_trn_ds = Dataset(X_train, y_train)
 #    print (fully_labeled_trn_ds.get_entries()[0])
     return trn_ds, tst_ds, y_train, fully_labeled_trn_ds, fully_tst_ds, val_ds
 
-def split_train_test_rnn(train_dir, vocab_dir, test_size, n_labeled):
-    #train_dir = './data/labeled1.txt'
-    #vocab_dir = './data/vocab_yinan_test_rnn4.txt'
+def split_train_test_rnn(train_dir, vocab_dir, vocab_size, test_size, val_size, n_labeled, wordslength, categories_class):
     if not os.path.exists(vocab_dir):
-        build_vocab(train_dir,vocab_dir,1000)
-    categories, cat_to_id = read_category()
+        build_vocab(train_dir,vocab_dir, vocab_size)
+    categories, cat_to_id = read_category(categories_class)
     words, word_to_id = read_vocab(vocab_dir)
 
-    data_id, label_id = process_file_rnn(train_dir, word_to_id, cat_to_id,600)
+    data_id, label_id = process_file_rnn(train_dir, word_to_id, cat_to_id,wordslength)
     # x_rnn, y_rnn = process_file_rnn(train_dir, word_to_id, cat_to_id, 600)
 
     y = kr.utils.to_categorical(label_id, num_classes=len(cat_to_id))
@@ -290,7 +243,7 @@ def split_train_test_rnn(train_dir, vocab_dir, test_size, n_labeled):
     X_test_al = []
     res = []
     for i in X_train:
-        for j in range(600):
+        for j in range(wordslength):
             a = i.count(j)
             if a > 0:
                 res.append(a)
@@ -300,7 +253,7 @@ def split_train_test_rnn(train_dir, vocab_dir, test_size, n_labeled):
         res = []
 
     for i in X_test:
-        for j in range(600):
+        for j in range(wordslength):
             a = i.count(j)
             if a > 0:
                 res.append(a)
@@ -320,11 +273,11 @@ def split_train_test_rnn(train_dir, vocab_dir, test_size, n_labeled):
     tst_ds_al = Dataset(X_test_al, y_test)
 
 
-    X_train_rnn = kr.preprocessing.sequence.pad_sequences(X_train, 600)
-    X_test_rnn = kr.preprocessing.sequence.pad_sequences(X_test, 600)
+    X_train_rnn = kr.preprocessing.sequence.pad_sequences(X_train, wordslength)
+    X_test_rnn = kr.preprocessing.sequence.pad_sequences(X_test, wordslength)
 
     X_train_rnn, X_val_rnn, y_train_rnn, y_val_rnn = \
-            train_test_split(X_train_rnn, y_train, test_size=0.2)
+            train_test_split(X_train_rnn, y_train, test_size=val_size)
 
     trn_ds_rnn = Dataset(X_train_rnn, np.concatenate(
         [y_train_rnn[:n_labeled], [None] * (len(y_train_rnn) - n_labeled)]))
@@ -343,16 +296,23 @@ def split_train_test_rnn(train_dir, vocab_dir, test_size, n_labeled):
 
 
 def main():
-    train_dir = './data/labeled1.txt'
-    vocab_dir = './data/vocab_yinan_test_rnn5.txt'
-	
+    config = TRNNConfig()
+
+    train_dir = './data/train3_shuf_15000.txt'
+    vocab_dir = './data/vocab_train3_shuf_15000.txt'
+    batchsize = config.batch_size
+    wordslength = config.seq_length
+    vocab_size = config.vocab_size
+    numclass = config.num_classes
+    val_size = 0.2
     test_size = 0.2    # the percentage of samples in the dataset that will be
-    n_labeled = 300     # number of samples that are initially labeled
+    n_labeled = 5000     # number of samples that are initially labeled
+    categories_class = ['体育', '家居', '娱乐']
 
     result = {'E1':[],'E2':[],'E3':[]}
     for i in range(1):
         trn_ds_al, tst_ds_al, y_train_rnn, fully_labeled_trn_ds_al, trn_ds_rnn, tst_ds_rnn, fully_labeled_trn_ds_rnn, val_ds_rnn = \
-         split_train_test_rnn(train_dir, vocab_dir, test_size, n_labeled)
+         split_train_test_rnn(train_dir, vocab_dir, vocab_size, test_size, val_size, n_labeled, wordslength, categories_class)
         trn_ds2 = copy.deepcopy(trn_ds_al)
         trn_ds3 = copy.deepcopy(trn_ds_al)
         lbr_al = IdealLabeler(fully_labeled_trn_ds_al)
@@ -368,22 +328,22 @@ def main():
         print (len(tst_ds_rnn.get_labeled_entries()))
         print (len(val_ds_rnn.get_labeled_entries()))
 
-        modelrnn = RNN_Probability_Model(vocab_dir)
+        modelrnn = RNN_Probability_Model(vocab_dir, wordslength, batchsize, numclass, categories_class)
         modelrnn.train(trn_ds_rnn, val_ds_rnn)
         #test_acc = 0.5       
         test_acc = modelrnn.test(val_ds_rnn)
-        E_out_3 = runrnn(trn_ds_rnn, tst_ds_rnn, val_ds_rnn, lbr_rnn, modelrnn, quota, test_acc)
+        E_out_3 = runrnn(trn_ds_rnn, tst_ds_rnn, val_ds_rnn, lbr_rnn, modelrnn, quota, test_acc, batchsize)
 
         # result['E1'].append(E_out_1)
         model = SVM(kernel='rbf', decision_function_shape='ovr')
         qs2 = RandomSampling(trn_ds2)
-        E_out_2 = realrun_random(trn_ds2, tst_ds_al, lbr_al, model, qs2, quota)
+        E_out_2 = realrun_random(trn_ds2, tst_ds_al, lbr_al, model, qs2, quota, batchsize)
 
 
 
         qs = UncertaintySampling(trn_ds3, method='sm',model=SVM(decision_function_shape='ovr'))
         model = SVM(kernel='rbf',decision_function_shape='ovr')
-        E_out_1 = realrun_qs(trn_ds3, tst_ds_al, lbr_al, model, qs, quota)
+        E_out_1 = realrun_qs(trn_ds3, tst_ds_al, lbr_al, model, qs, quota, batchsize)
 
 
         # test_acc = modelrnn.test(tst_ds)
@@ -404,10 +364,10 @@ def main():
     print (E_out_1)
     print (E_out_2)
     print (E_out_3)
-    if quota % 8 == 0:
-        intern = int( quota / 8)
+    if quota % batchsize == 0:
+        intern = int( quota / batchsize)
     else:
-        intern = int(quota / 8) + 1
+        intern = int(quota / batchsize) + 1
     query_num = np.arange(1, intern + 1)
     plt.figure(figsize=(10,8))
     #plt.plot(query_num, E_in_1, 'b', label='qs Ein')
@@ -420,7 +380,7 @@ def main():
     plt.title('Experiment Result')
     plt.legend(loc='upper center', bbox_to_anchor=(0.5, -0.05),
                fancybox=True, shadow=True, ncol=5)
-    plt.savefig('testmerge_rnn_0617.png')
+    plt.savefig('testmerge_rnn_3_5000_0623.png')
     plt.show()
 
 

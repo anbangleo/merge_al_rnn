@@ -8,9 +8,9 @@ class TRNNConfig(object):
 
     # 模型参数
     embedding_dim = 64      # 词向量维度
-    seq_length = 600        # 序列长度
+    seq_length = 800        # 序列长度
     num_classes = 3        # 类别数
-    vocab_size = 1000       # 词汇表达小
+    vocab_size = 3000       # 词汇表达小
 
     num_layers= 2           # 隐藏层层数
     hidden_dim = 128        # 隐藏层神经元
@@ -19,11 +19,11 @@ class TRNNConfig(object):
     dropout_keep_prob = 0.8 # dropout保留比例
     learning_rate = 1e-3    # 学习率
 
-    batch_size = 8         # 每批训练大小
-    num_epochs = 5          # 总迭代轮次
+    batch_size = 64         # 每批训练大小
+    num_epochs = 8          # 总迭代轮次
 
-    print_per_batch = 5    # 每多少轮输出一次结果
-    save_per_batch = 2      # 每多少轮存入tensorboard
+    print_per_batch = 30    # 每多少轮输出一次结果
+    save_per_batch = 5      # 每多少轮存入tensorboard
 
 
 class TextRNN(object):

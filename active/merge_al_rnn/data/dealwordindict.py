@@ -87,9 +87,9 @@ def read_vocab(vocab_dir):
     return words, word_to_id
 
 
-def read_category():
+def read_category(categories):
     """读取分类目录，固定"""
-    categories = ['简单','复杂', '倾向']
+    categories = categories
 
     categories = [native_content(x) for x in categories]
 
