@@ -2,8 +2,6 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="dc589584-3358-4133-bc67-c80cd61c81bf" name="Default" comment="">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/active/merge_al_rnn/data/dealwordindict.py" afterPath="$PROJECT_DIR$/active/merge_al_rnn/data/dealwordindict.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/active/merge_al_rnn/data/rnn_model.py" afterPath="$PROJECT_DIR$/active/merge_al_rnn/data/rnn_model.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/active/merge_al_rnn/data/rnnmodel.py" afterPath="$PROJECT_DIR$/active/merge_al_rnn/data/rnnmodel.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/active/merge_al_rnn/mergetest.py" afterPath="$PROJECT_DIR$/active/merge_al_rnn/mergetest.py" />
@@ -36,22 +34,15 @@
     <splitter split-orientation="horizontal" split-proportion="0.4935065">
       <split-first>
         <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-          <file leaf-file-name="mergetest.py" pinned="false" current-in-tab="false">
+          <file leaf-file-name="mergetest.py" pinned="false" current-in-tab="true">
             <entry file="file://$PROJECT_DIR$/active/merge_al_rnn/mergetest.py">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="221">
-                  <caret line="306" column="18" lean-forward="false" selection-start-line="306" selection-start-column="18" selection-end-line="306" selection-end-column="18" />
+                <state relative-caret-position="132">
+                  <caret line="136" column="9" lean-forward="true" selection-start-line="136" selection-start-column="9" selection-end-line="136" selection-end-column="9" />
                   <folding>
-                    <element signature="e#5632#7016#0" expanded="false" />
+                    <element signature="e#5640#7024#0" expanded="false" />
                   </folding>
                 </state>
-              </provider>
-            </entry>
-          </file>
-          <file leaf-file-name="first_al_resultsvm.png" pinned="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/active/merge_al_rnn/first_al_resultsvm.png">
-              <provider selected="true" editor-type-id="images">
-                <state />
               </provider>
             </entry>
           </file>
@@ -65,8 +56,8 @@
           <file leaf-file-name="rnn_model.py" pinned="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/active/merge_al_rnn/data/rnn_model.py">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="180">
-                  <caret line="12" column="32" lean-forward="false" selection-start-line="12" selection-start-column="32" selection-end-line="12" selection-end-column="32" />
+                <state relative-caret-position="223">
+                  <caret line="42" column="0" lean-forward="false" selection-start-line="42" selection-start-column="0" selection-end-line="42" selection-end-column="0" />
                   <folding />
                 </state>
               </provider>
@@ -82,11 +73,21 @@
               </provider>
             </entry>
           </file>
-          <file leaf-file-name="cnn_model.py" pinned="false" current-in-tab="true">
+          <file leaf-file-name="cnn_model.py" pinned="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/active/merge_al_rnn/rnn/cnn_model.py">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="351">
-                  <caret line="49" column="54" lean-forward="false" selection-start-line="49" selection-start-column="54" selection-end-line="49" selection-end-column="54" />
+                <state relative-caret-position="411">
+                  <caret line="50" column="38" lean-forward="false" selection-start-line="50" selection-start-column="38" selection-end-line="50" selection-end-column="38" />
+                  <folding />
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file leaf-file-name="run_rnn.py" pinned="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/active/merge_al_rnn/rnn/run_rnn.py">
+              <provider selected="true" editor-type-id="text-editor">
+                <state relative-caret-position="212">
+                  <caret line="91" column="34" lean-forward="false" selection-start-line="93" selection-start-column="5" selection-end-line="93" selection-end-column="6" />
                   <folding />
                 </state>
               </provider>
@@ -95,8 +96,8 @@
           <file leaf-file-name="rnn_model.py" pinned="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/rnn/rnn_model.py">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="326">
-                  <caret line="29" column="20" lean-forward="false" selection-start-line="29" selection-start-column="20" selection-end-line="29" selection-end-column="20" />
+                <state relative-caret-position="510">
+                  <caret line="34" column="49" lean-forward="false" selection-start-line="34" selection-start-column="49" selection-end-line="34" selection-end-column="49" />
                   <folding />
                 </state>
               </provider>
@@ -105,8 +106,8 @@
           <file leaf-file-name="rnnmodel.py" pinned="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/active/merge_al_rnn/data/rnnmodel.py">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="-691">
-                  <caret line="63" column="31" lean-forward="false" selection-start-line="63" selection-start-column="31" selection-end-line="63" selection-end-column="31" />
+                <state relative-caret-position="595">
+                  <caret line="84" column="37" lean-forward="false" selection-start-line="84" selection-start-column="37" selection-end-line="84" selection-end-column="37" />
                   <folding>
                     <element signature="e#193#210#0" expanded="true" />
                   </folding>
@@ -117,8 +118,8 @@
           <file leaf-file-name="run_rnn.py" pinned="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/rnn/run_rnn.py">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="343">
-                  <caret line="55" column="30" lean-forward="false" selection-start-line="55" selection-start-column="30" selection-end-line="55" selection-end-column="30" />
+                <state relative-caret-position="181">
+                  <caret line="55" column="49" lean-forward="false" selection-start-line="55" selection-start-column="49" selection-end-line="55" selection-end-column="49" />
                   <folding />
                 </state>
               </provider>
@@ -127,8 +128,8 @@
           <file leaf-file-name="dealwordindict.py" pinned="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/active/merge_al_rnn/data/dealwordindict.py">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="390">
-                  <caret line="118" column="31" lean-forward="false" selection-start-line="62" selection-start-column="4" selection-end-line="62" selection-end-column="15" />
+                <state relative-caret-position="216">
+                  <caret line="186" column="52" lean-forward="false" selection-start-line="186" selection-start-column="52" selection-end-line="186" selection-end-column="52" />
                   <folding />
                 </state>
               </provider>
@@ -141,10 +142,10 @@
           <file leaf-file-name="mergetest.py" pinned="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/active/merge_al_rnn/mergetest.py">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="300">
-                  <caret line="221" column="43" lean-forward="false" selection-start-line="221" selection-start-column="43" selection-end-line="221" selection-end-column="43" />
+                <state relative-caret-position="251">
+                  <caret line="41" column="9" lean-forward="false" selection-start-line="41" selection-start-column="9" selection-end-line="41" selection-end-column="9" />
                   <folding>
-                    <element signature="e#5632#7016#0" expanded="false" />
+                    <element signature="e#5640#7024#0" expanded="false" />
                   </folding>
                 </state>
               </provider>
@@ -165,8 +166,8 @@
           <file leaf-file-name="rnnmodel.py" pinned="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/active/merge_al_rnn/data/rnnmodel.py">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="482">
-                  <caret line="58" column="65" lean-forward="false" selection-start-line="58" selection-start-column="65" selection-end-line="58" selection-end-column="65" />
+                <state relative-caret-position="257">
+                  <caret line="43" column="0" lean-forward="false" selection-start-line="43" selection-start-column="0" selection-end-line="43" selection-end-column="0" />
                   <folding>
                     <element signature="e#193#210#0" expanded="true" />
                   </folding>
@@ -197,8 +198,8 @@
           <file leaf-file-name="rnn_model.py" pinned="false" current-in-tab="true">
             <entry file="file://$PROJECT_DIR$/active/merge_al_rnn/data/rnn_model.py">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="554">
-                  <caret line="81" column="22" lean-forward="true" selection-start-line="81" selection-start-column="22" selection-end-line="81" selection-end-column="22" />
+                <state relative-caret-position="49">
+                  <caret line="51" column="34" lean-forward="false" selection-start-line="51" selection-start-column="34" selection-end-line="51" selection-end-column="34" />
                   <folding />
                 </state>
               </provider>
@@ -230,15 +231,8 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>base_dir</find>
-      <find>train_dir</find>
-      <find>require_improvement</find>
-      <find>tensorboard_dir</find>
-      <find>y_train</find>
-      <find>print</find>
       <find>split_train_test</find>
       <find>8</find>
-      <find>RNN_Probability_Model</find>
       <find>self.numclass</find>
       <find>config</find>
       <find>config.batch_size</find>
@@ -253,13 +247,20 @@
       <find>ji</find>
       <find>简单</find>
       <find>build_vocab</find>
-      <find>process_file_rnn</find>
       <find>read_category</find>
-      <find>split_train</find>
       <find>dropout</find>
-      <find>40</find>
       <find>vocab_size</find>
+      <find>inittraintimes</find>
+      <find>split_train</find>
+      <find>40</find>
+      <find>e</find>
+      <find>RNN_Probability_Model</find>
+      <find>epochs</find>
+      <find>num_epochs</find>
       <find>relu</find>
+      <find>process_file_rnn</find>
+      <find>require_improvement</find>
+      <find>model.loss</find>
     </findStrings>
     <replaceStrings>
       <replace />
@@ -282,8 +283,8 @@
         <option value="$PROJECT_DIR$/active/merge_al_rnn/rnn_model.py" />
         <option value="$PROJECT_DIR$/active/merge_al_rnn/data/dealwordindict.py" />
         <option value="$PROJECT_DIR$/active/merge_al_rnn/data/rnn_model.py" />
-        <option value="$PROJECT_DIR$/active/merge_al_rnn/mergetest.py" />
         <option value="$PROJECT_DIR$/active/merge_al_rnn/data/rnnmodel.py" />
+        <option value="$PROJECT_DIR$/active/merge_al_rnn/mergetest.py" />
       </list>
     </option>
   </component>
@@ -294,8 +295,8 @@
     <sorting>DEFINITION_ORDER</sorting>
   </component>
   <component name="ProjectFrameBounds">
-    <option name="x" value="-1879" />
-    <option name="y" value="-9" />
+    <option name="x" value="822" />
+    <option name="y" value="23" />
     <option name="width" value="1878" />
     <option name="height" value="1057" />
   </component>
@@ -720,7 +721,7 @@
     </todo-panel>
   </component>
   <component name="ToolWindowManager">
-    <frame x="-1879" y="-9" width="1878" height="1057" extended-state="1" />
+    <frame x="822" y="23" width="1878" height="1057" extended-state="0" />
     <editor active="true" />
     <layout>
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
@@ -784,9 +785,7 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="2850">
           <caret line="197" column="33" lean-forward="false" selection-start-line="197" selection-start-column="33" selection-end-line="197" selection-end-column="33" />
-          <folding>
-            <element signature="e#17#27#0" expanded="true" />
-          </folding>
+          <folding />
         </state>
       </provider>
     </entry>
@@ -979,13 +978,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/active/merge_al_rnn/rnn/run_rnn.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1560">
-          <caret line="182" column="0" lean-forward="false" selection-start-line="182" selection-start-column="0" selection-end-line="182" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/active/merge_al_rnn/rnn/requirements.txt">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="0">
@@ -1050,28 +1042,10 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/active/merge_al_rnn/data/dealwordindict.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="345">
-          <caret line="23" column="9" lean-forward="false" selection-start-line="23" selection-start-column="9" selection-end-line="23" selection-end-column="9" />
-          <folding>
-            <element signature="e#17#27#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/yinanrnn/rnn_model.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="540">
           <caret line="36" column="47" lean-forward="false" selection-start-line="36" selection-start-column="47" selection-end-line="36" selection-end-column="47" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/rnn/run_rnn.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="615">
-          <caret line="53" column="36" lean-forward="false" selection-start-line="53" selection-start-column="36" selection-end-line="53" selection-end-column="36" />
           <folding />
         </state>
       </provider>
@@ -1084,26 +1058,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/active/merge_al_rnn/mergetest.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="300">
-          <caret line="221" column="43" lean-forward="false" selection-start-line="221" selection-start-column="43" selection-end-line="221" selection-end-column="43" />
-          <folding>
-            <element signature="e#5632#7016#0" expanded="false" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/active/merge_al_rnn/data/rnnmodel.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="482">
-          <caret line="58" column="65" lean-forward="false" selection-start-line="58" selection-start-column="65" selection-end-line="58" selection-end-column="65" />
-          <folding>
-            <element signature="e#193#210#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/active/merge_al_rnn/rnn/run_cnn.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="160">
@@ -1112,27 +1066,71 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/rnn/rnn_model.py">
+    <entry file="file://$PROJECT_DIR$/active/merge_al_rnn/rnn/cnn_model.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="255">
-          <caret line="17" column="0" lean-forward="false" selection-start-line="17" selection-start-column="0" selection-end-line="17" selection-end-column="0" />
+        <state relative-caret-position="411">
+          <caret line="50" column="38" lean-forward="false" selection-start-line="50" selection-start-column="38" selection-end-line="50" selection-end-column="38" />
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/active/merge_al_rnn/rnn/cnn_model.py">
+    <entry file="file://$PROJECT_DIR$/active/merge_al_rnn/rnn/run_rnn.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="351">
-          <caret line="49" column="54" lean-forward="false" selection-start-line="49" selection-start-column="54" selection-end-line="49" selection-end-column="54" />
+        <state relative-caret-position="212">
+          <caret line="91" column="34" lean-forward="false" selection-start-line="93" selection-start-column="5" selection-end-line="93" selection-end-column="6" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/rnn/rnn_model.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="510">
+          <caret line="34" column="49" lean-forward="false" selection-start-line="34" selection-start-column="49" selection-end-line="34" selection-end-column="49" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/rnn/run_rnn.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="181">
+          <caret line="55" column="49" lean-forward="false" selection-start-line="55" selection-start-column="49" selection-end-line="55" selection-end-column="49" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/active/merge_al_rnn/data/dealwordindict.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="216">
+          <caret line="186" column="52" lean-forward="false" selection-start-line="186" selection-start-column="52" selection-end-line="186" selection-end-column="52" />
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/active/merge_al_rnn/data/rnn_model.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="554">
-          <caret line="81" column="22" lean-forward="true" selection-start-line="81" selection-start-column="22" selection-end-line="81" selection-end-column="22" />
+        <state relative-caret-position="223">
+          <caret line="42" column="0" lean-forward="false" selection-start-line="42" selection-start-column="0" selection-end-line="42" selection-end-column="0" />
           <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/active/merge_al_rnn/data/rnnmodel.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="595">
+          <caret line="84" column="37" lean-forward="false" selection-start-line="84" selection-start-column="37" selection-end-line="84" selection-end-column="37" />
+          <folding>
+            <element signature="e#193#210#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/active/merge_al_rnn/mergetest.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="132">
+          <caret line="136" column="9" lean-forward="true" selection-start-line="136" selection-start-column="9" selection-end-line="136" selection-end-column="9" />
+          <folding>
+            <element signature="e#5640#7024#0" expanded="false" />
+          </folding>
         </state>
       </provider>
     </entry>

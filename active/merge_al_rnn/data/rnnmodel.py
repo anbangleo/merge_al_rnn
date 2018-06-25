@@ -60,8 +60,8 @@ class RNN_Probability_Model:
         self.words, self.word_to_id = read_vocab(self.vocab_dir)
         self.config.vocab_size = len(self.words)
         self.model = TextRNN(self.config)
-        self.inittraintimes = 300
-        self.retraintimes = 200
+        self.inittraintimes = 50
+        self.retraintimes = 40
 
 
         self.session = tf.Session()
@@ -232,12 +232,17 @@ class RNN_Probability_Model:
             feed_dict_first = self.feed_data(x_first_train, y_first_train, self.config.dropout_keep_prob)
             feed_dict_first[self.model.keep_prob] = 1.0
             loss_train, acc_train = session.run([self.model.loss, self.model.acc], feed_dict=feed_dict_first)
+            session.run(self.model.optim, feed_dict=feed_dict_first)
             loss_val_first, acc_val_first = self.evaluate(session, x_val, y_val)
 
             print ("first retrain acc:")
             print (acc_val_first)
+            print ("the best acc is:")
+            print (best_acc_val)
+
+            # if acc_val_first > best_acc_val:
+            saver.save(sess=session, save_path=self.save_path)
             if acc_val_first > best_acc_val:
-                saver.save(sess=session, save_path=self.save_path)
                 best_acc_val = acc_val_first
                 print ("Good Retrain!")
 

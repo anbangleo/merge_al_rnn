@@ -19,11 +19,11 @@ class TRNNConfig(object):
     dropout_keep_prob = 0.8 # dropout保留比例
     learning_rate = 1e-3    # 学习率
 
-    batch_size = 64         # 每批训练大小
+    batch_size = 32         # 每批训练大小
     num_epochs = 8          # 总迭代轮次
 
-    print_per_batch = 30    # 每多少轮输出一次结果
-    save_per_batch = 5      # 每多少轮存入tensorboard
+    print_per_batch = 10    # 每多少轮输出一次结果
+    save_per_batch = 2      # 每多少轮存入tensorboard
 
 
 class TextRNN(object):

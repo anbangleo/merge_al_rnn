@@ -52,7 +52,7 @@ def realrun_random(trn_ds, tst_ds, lbr, model, qs, quota, batchsize):
     E_in, E_out = [], []
     intern = 0
     finalnum = 0
-    if quota % 8 == 0:
+    if quota % batchsize == 0:
         intern = int(quota / batchsize)
     else:
         intern = int(quota / batchsize ) + 1
@@ -298,15 +298,15 @@ def split_train_test_rnn(train_dir, vocab_dir, vocab_size, test_size, val_size, 
 def main():
     config = TRNNConfig()
 
-    train_dir = './data/train3_shuf_15000.txt'
-    vocab_dir = './data/vocab_train3_shuf_15000.txt'
+    train_dir = './data/train3_shuf_5000.txt'
+    vocab_dir = './data/vocab_train3_shuf_5000.txt'
     batchsize = config.batch_size
     wordslength = config.seq_length
     vocab_size = config.vocab_size
     numclass = config.num_classes
     val_size = 0.2
     test_size = 0.2    # the percentage of samples in the dataset that will be
-    n_labeled = 5000     # number of samples that are initially labeled
+    n_labeled = 1000     # number of samples that are initially labeled
     categories_class = ['体育', '家居', '娱乐']
 
     result = {'E1':[],'E2':[],'E3':[]}
