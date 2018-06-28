@@ -48,20 +48,20 @@ class RNN_Probability_Model:
     def __init__(self, vocabdir, wordslength, batchsize, numclass, categories_class):
 
         self.vocab_dir = vocabdir
-        self.tensorboard_dir = 'tensorboard/textmergernn_test_5000'
+        self.tensorboard_dir = 'tensorboard/textmergernn_test_10000'
         self.numclass = numclass
         self.wordslength = wordslength
 
         self.batchsize = batchsize
-        self.save_dir = 'checkpoints/textmergernn_test_5000'
+        self.save_dir = 'checkpoints/textmergernn_test_10000'
         self.save_path = os.path.join(self.save_dir, 'best_validation')  # 最佳验证结果保存路径
         self.config = TRNNConfig()
         self.categories, self.cat_to_id = read_category(categories_class)
         self.words, self.word_to_id = read_vocab(self.vocab_dir)
         self.config.vocab_size = len(self.words)
         self.model = TextRNN(self.config)
-        self.inittraintimes = 50
-        self.retraintimes = 40
+        self.inittraintimes = 100
+        self.retraintimes = 80
 
 
         self.session = tf.Session()
@@ -240,14 +240,14 @@ class RNN_Probability_Model:
             print ("the best acc is:")
             print (best_acc_val)
 
-            # if acc_val_first > best_acc_val:
-            saver.save(sess=session, save_path=self.save_path)
             if acc_val_first > best_acc_val:
+                saver.save(sess=session, save_path=self.save_path)
+            # if acc_val_first > best_acc_val:
                 best_acc_val = acc_val_first
                 print ("Good Retrain!")
 
         flag = False
-        for epoch in range(self.config.num_epochs):
+        for epoch in range(self.config.num_retrain_epochs):
             print('Epoch:', epoch + 1)
             batch_train = batch_iter(x_train, y_train, self.batchsize)
             for x_batch, y_batch in batch_train:
@@ -323,7 +323,8 @@ class RNN_Probability_Model:
 
 		
 		
-        self.categories = ['simple','complicated','preference']
+        # self.categories = ['simple','complicated','preference']
+        self.categories = ['pe', 'furniture', 'entertainment','game','finical','home','edu','fashion','politic','technique']
         y_pred_cls = self.session.run(self.model.y_pred_cls,feed_dict=feed_dict)
         y_pro = self.session.run(self.model.pred_pro, feed_dict = feed_dict)
         
@@ -386,7 +387,8 @@ class RNN_Probability_Model:
 
         # 评估
         print("Precision, Recall and F1-Score...")
-        categories = ['simple', 'complicated', 'preference']
+       # '体育', '家居', '娱乐', '游戏', '财经', '房产', '教育', '时尚', '时政', '科技'
+        categories = ['pe', 'furniture', 'entertainment','game','finical','home','edu','fashion','politic','technique']
         print(metrics.classification_report(y_test_cls, y_pred_cls, target_names=categories))
 
         # 混淆矩阵

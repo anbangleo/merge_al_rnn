@@ -32,6 +32,7 @@ except Exception: #ImportError
     from dealwordindict import read_vocab, read_category, batch_iter, process_file, process_file_rnn, build_vocab
 # from dealwordindict import read_vocab, read_category, batch_iter, process_file, build_vocab
 import time
+from datetime import timedelta
 import heapq
 from data.rnnmodel import RNN_Probability_Model,TRNNConfig
 import random
@@ -45,13 +46,15 @@ def get_time_dif(start_time):
     """获取已使用时间"""
     end_time = time.time()
     time_dif = end_time - start_time
-    return time_dif
+    return timedelta(seconds=int(round(time_dif)))
 
 
 def realrun_random(trn_ds, tst_ds, lbr, model, qs, quota, batchsize):
     E_in, E_out = [], []
     intern = 0
     finalnum = 0
+    print ("[Important] Start the Random Train:")
+    start_time = time.time()
     if quota % batchsize == 0:
         intern = int(quota / batchsize)
     else:
@@ -75,11 +78,16 @@ def realrun_random(trn_ds, tst_ds, lbr, model, qs, quota, batchsize):
         E_out = np.append(E_out, 1 - model.score(tst_ds))
         print (E_out)
 
-    return E_out
+    E_time = get_time_dif(start_time)
+    # print("time to train" + str(time_dif))
+
+    return E_out, E_time
 def realrun_qs(trn_ds, tst_ds, lbr, model,qs, quota, batchsize):
     E_in, E_out = [], []
     intern = 0
     finalnum = 0
+    print ("[Important] Start the UncertaintySampling Train:")
+    start_time = time.time()
     if quota % batchsize == 0:
         intern = int( quota / batchsize)
     else:
@@ -125,13 +133,16 @@ def realrun_qs(trn_ds, tst_ds, lbr, model,qs, quota, batchsize):
         E_out = np.append(E_out, 1 - model.score(tst_ds))
         # print (E_in)
         print (E_out)
+    E_time = get_time_dif(start_time)
 
-    return E_out
+    return E_out, E_time
 
 def runrnn(trn_ds, tst_ds, val_ds, lbr, model, quota, best_val, batchsize):
     E_in, E_out = [], []
     intern = 0
     finalnum = 0
+    print ("[Important] Start the RNN Train:")
+    start_time = time.time()
     if quota % batchsize == 0:
         intern = int( quota / batchsize)
     else:
@@ -175,7 +186,9 @@ def runrnn(trn_ds, tst_ds, val_ds, lbr, model, quota, best_val, batchsize):
         # print (E_in)
         print (E_out)
 
-    return E_out
+    E_time = get_time_dif(start_time)
+
+    return E_out, E_time
 
 
 def split_train_test(train_dir, vocab_dir, test_size, n_labeled, wordslength):
@@ -298,16 +311,16 @@ def split_train_test_rnn(train_dir, vocab_dir, vocab_size, test_size, val_size, 
 def main():
     config = TRNNConfig()
 
-    train_dir = './data/train3_shuf_5000.txt'
-    vocab_dir = './data/vocab_train3_shuf_5000.txt'
+    train_dir = './data/train10_shuf_10000.txt'
+    vocab_dir = './data/vocab_train10_shuf_10000.txt'
     batchsize = config.batch_size
     wordslength = config.seq_length
     vocab_size = config.vocab_size
     numclass = config.num_classes
-    val_size = 0.2
+    val_size = 0.15
     test_size = 0.2    # the percentage of samples in the dataset that will be
     n_labeled = 1000     # number of samples that are initially labeled
-    categories_class = ['体育', '家居', '娱乐']
+    categories_class = ['体育', '家居', '娱乐','游戏','财经','房产','教育','时尚','时政','科技']
 
     result = {'E1':[],'E2':[],'E3':[]}
     for i in range(1):
@@ -332,38 +345,44 @@ def main():
         modelrnn.train(trn_ds_rnn, val_ds_rnn)
         #test_acc = 0.5       
         test_acc = modelrnn.test(val_ds_rnn)
-        E_out_3 = runrnn(trn_ds_rnn, tst_ds_rnn, val_ds_rnn, lbr_rnn, modelrnn, quota, test_acc, batchsize)
+        E_out_rnn, E_time_rnn = runrnn(trn_ds_rnn, tst_ds_rnn, val_ds_rnn, lbr_rnn, modelrnn, quota, test_acc, batchsize)
 
         # result['E1'].append(E_out_1)
         model = SVM(kernel='rbf', decision_function_shape='ovr')
         qs2 = RandomSampling(trn_ds2)
-        E_out_2 = realrun_random(trn_ds2, tst_ds_al, lbr_al, model, qs2, quota, batchsize)
+        E_out_random, E_time_random = realrun_random(trn_ds2, tst_ds_al, lbr_al, model, qs2, quota, batchsize)
 
 
 
         qs = UncertaintySampling(trn_ds3, method='sm',model=SVM(decision_function_shape='ovr'))
         model = SVM(kernel='rbf',decision_function_shape='ovr')
-        E_out_1 = realrun_qs(trn_ds3, tst_ds_al, lbr_al, model, qs, quota, batchsize)
+        E_out_us, E_time_us = realrun_qs(trn_ds3, tst_ds_al, lbr_al, model, qs, quota, batchsize)
 
 
         # test_acc = modelrnn.test(tst_ds)
 
-        result['E1'].append(E_out_1)
-        result['E2'].append(E_out_2)
+        result['E1'].append(E_out_us)
+        result['E2'].append(E_out_random)
 
-        result['E3'].append(E_out_3)
+        result['E3'].append(E_out_rnn)
 
 
 
-    E_out_1 = np.mean(result['E1'],axis=0)
-    E_out_2 = np.mean(result['E2'],axis=0)
-    E_out_3 = np.mean(result['E3'],axis=0)
+    E_out_us = np.mean(result['E1'],axis=0)
+    E_out_random = np.mean(result['E2'],axis=0)
+    E_out_rnn = np.mean(result['E3'],axis=0)
     # Plot the learning curve of UncertaintySampling to RandomSampling
     # The x-axis is the number of queries, and the y-axis is the corresponding
     # error rate.
-    print (E_out_1)
-    print (E_out_2)
-    print (E_out_3)
+    print ("[Result] for Uncertainty Sampling")
+    print (E_out_us)
+    print (E_time_us)
+    print ("[Result] for Random")
+    print (E_out_random)
+    print (E_time_random)
+    print ("[Result] for RNN")
+    print (E_out_rnn)
+    print (E_time_rnn)
     if quota % batchsize == 0:
         intern = int( quota / batchsize)
     else:
@@ -372,15 +391,15 @@ def main():
     plt.figure(figsize=(10,8))
     #plt.plot(query_num, E_in_1, 'b', label='qs Ein')
     #plt.plot(query_num, E_in_2, 'r', label='random Ein')
-    plt.plot(query_num, E_out_1, 'g', label='qs Eout')
-    plt.plot(query_num, E_out_2, 'k', label='random Eout')
-    plt.plot(query_num, E_out_3, 'r', label='rnn Eout')
+    plt.plot(query_num, E_out_us, 'g', label='qs Eout')
+    plt.plot(query_num, E_out_random, 'k', label='random Eout')
+    plt.plot(query_num, E_out_rnn, 'r', label='rnn Eout')
     plt.xlabel('Number of Queries')
     plt.ylabel('Error')
     plt.title('Experiment Result')
     plt.legend(loc='upper center', bbox_to_anchor=(0.5, -0.05),
                fancybox=True, shadow=True, ncol=5)
-    plt.savefig('testmerge_rnn_3_5000_0623.png')
+    plt.savefig('testmerge_rnn_10_10000_0628.png')
     plt.show()
 
 
