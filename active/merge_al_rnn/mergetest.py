@@ -75,7 +75,7 @@ def realrun_random(trn_ds, tst_ds, lbr, model, qs, quota, batchsize):
             trn_ds.update(ask_id, lb)
 
         model.train(trn_ds)
-        E_out = np.append(E_out, 1 - model.score(tst_ds))
+        E_out = np.append(E_out, model.score(tst_ds))
         print (E_out)
 
     E_time = get_time_dif(start_time)
@@ -130,7 +130,7 @@ def realrun_qs(trn_ds, tst_ds, lbr, model,qs, quota, batchsize):
         model.train(trn_ds)
 
         # E_in = np.append(E_in, 1 - model.score(trn_ds))
-        E_out = np.append(E_out, 1 - model.score(tst_ds))
+        E_out = np.append(E_out, model.score(tst_ds))
         # print (E_in)
         print (E_out)
     E_time = get_time_dif(start_time)
@@ -182,7 +182,7 @@ def runrnn(trn_ds, tst_ds, val_ds, lbr, model, quota, best_val, batchsize):
         best_val = model.retrain(trn_ds, val_ds, best_val, first_train)
 
         # E_in = np.append(E_in, 1 - model.score(trn_ds))
-        E_out = np.append(E_out, 1 - model.score(tst_ds))
+        E_out = np.append(E_out, model.score(tst_ds))
         # print (E_in)
         print (E_out)
 
@@ -363,9 +363,7 @@ def main():
 
         result['E1'].append(E_out_us)
         result['E2'].append(E_out_random)
-
         result['E3'].append(E_out_rnn)
-
 
 
     E_out_us = np.mean(result['E1'],axis=0)
@@ -391,15 +389,15 @@ def main():
     plt.figure(figsize=(10,8))
     #plt.plot(query_num, E_in_1, 'b', label='qs Ein')
     #plt.plot(query_num, E_in_2, 'r', label='random Ein')
-    plt.plot(query_num, E_out_us, 'g', label='qs Eout')
-    plt.plot(query_num, E_out_random, 'k', label='random Eout')
-    plt.plot(query_num, E_out_rnn, 'r', label='rnn Eout')
-    plt.xlabel('Number of Queries')
-    plt.ylabel('Error')
-    plt.title('Experiment Result')
+    plt.plot(query_num, E_out_us, 'g', label='Traditional AL')
+    plt.plot(query_num, E_out_random, 'k', label='Random')
+    plt.plot(query_num, E_out_rnn, 'r', label='Deep AL')
+    plt.xlabel('Number of Batches')
+    plt.ylabel('Accuracy')
+    plt.title('Result')
     plt.legend(loc='upper center', bbox_to_anchor=(0.5, -0.05),
                fancybox=True, shadow=True, ncol=5)
-    plt.savefig('testmerge_rnn_10_10000_0628.png')
+    plt.savefig('testmerge_rnn_10_10000_0630.png')
     plt.show()
 
 

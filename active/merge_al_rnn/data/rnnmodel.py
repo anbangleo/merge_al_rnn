@@ -243,8 +243,10 @@ class RNN_Probability_Model:
             if acc_val_first > best_acc_val:
                 saver.save(sess=session, save_path=self.save_path)
             # if acc_val_first > best_acc_val:
-                best_acc_val = acc_val_first
+
                 print ("Good Retrain!")
+
+            best_acc_val = acc_val_first
 
         flag = False
         for epoch in range(self.config.num_retrain_epochs):
