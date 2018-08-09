@@ -34,108 +34,21 @@ except Exception: #ImportError
 import time
 from datetime import timedelta
 import heapq
-from data.rnnmodel import RNN_Probability_Model,TRNNConfig
+from data.rnnmodel import RNN_Probability_Model,TRNNConfig,RNN_Probability_Model_LSTM
+from data.run_cnn import CNN_Probability_Model
+
 import random
 
 # import zip
 
 from datetime import timedelta
 import gc
-np.set_printoptions(threshold=1e6)
+
 def get_time_dif(start_time):
     """获取已使用时间"""
     end_time = time.time()
     time_dif = end_time - start_time
-    return timedelta(microseconds=int(round(time_dif*1000)))
-
-
-def realrun_random(trn_ds, tst_ds, lbr, model, qs, quota, batchsize):
-    E_in, E_out = [], []
-    intern = 0
-    finalnum = 0
-    print ("[Important] Start the Random Train:")
-    start_time = time.time()
-    if quota % batchsize == 0:
-        intern = int(quota / batchsize)
-    else:
-        intern = int(quota / batchsize ) + 1
-        finalnum = int(quota % batchsize)
-
-    for t in range(intern):
-        print ("[Random]this is the "+str(t)+" times to ask")
-        unlabeled_entry_ids, X_pool = zip(*trn_ds.get_unlabeled_entries())
-        if t == intern - 1 and finalnum != 0:
-            max_n = random.sample(unlabeled_entry_ids,finalnum)
-        else:
-            max_n = random.sample(unlabeled_entry_ids, batchsize)
-
-        X, _ = zip(*trn_ds.data)
-        for ask_id in max_n:
-            lb = lbr.label(X[ask_id])
-            trn_ds.update(ask_id, lb)
-
-        model.train(trn_ds)
-        E_out = np.append(E_out, model.score(tst_ds))
-        print (E_out)
-
-    E_time = get_time_dif(start_time)
-
-    return E_out, E_time
-def realrun_qs(trn_ds, tst_ds, lbr, model,qs, quota, batchsize):
-    E_in, E_out = [], []
-    E_time = []
-    intern = 0
-    finalnum = 0
-    print ("[Important] Start the UncertaintySampling Train:")
-
-    if quota % batchsize == 0:
-        intern = int( quota / batchsize)
-    else:
-        intern = int(quota / batchsize) + 1
-        finalnum = int(quota % batchsize)
-
-    for t in range(intern):
-        print ("[QS]this is the "+str(t)+" times to ask")
-        start_time = time.time()
-
-        # scores = model.predict_pro(trn_ds)
-        # unlabeled_entry_ids, X_pool = zip(*trn_ds.get_unlabeled_entries())
-        first, scores = qs.make_query(return_score=True)
-        itscore = zip(*scores)
-        number = next(itscore)
-        num_score = next(itscore)
-
-        num_score_array = np.array(num_score)
-
-        if t == intern - 1 and finalnum != 0:
-            max_n = heapq.nlargest(finalnum, range(len(num_score_array)), num_score_array.take)
-        else:
-            max_n = heapq.nlargest(batchsize, range(len(num_score_array)), num_score_array.take)
-
-        unlabeled_entry_ids, X_pool = zip(*trn_ds.get_unlabeled_entries())
-
-        X, _ = zip(*trn_ds.data)
-        # print (max_n)
-        for ask_id in max_n:
-            real_id = unlabeled_entry_ids[ask_id]
-            lb = lbr.label(X[real_id])
-            trn_ds.update(real_id, lb)
-
-        model.train(trn_ds)
-
-        # E_in = np.append(E_in, 1 - model.score(trn_ds))
-        E_out = np.append(E_out, model.score(tst_ds))
-        # print (E_in)
-        Etime = get_time_dif(start_time)
-        E_time.append(str(Etime))
-        # print (Etime)
-        # print (E_time)
-
-        print (E_out)
-
-
-
-    return E_out, E_time
+    return timedelta(seconds=int(round(time_dif)))
 
 def runrnn(trn_ds, tst_ds, val_ds, lbr, model, quota, best_val, batchsize):
     E_in, E_out = [], []
@@ -190,6 +103,58 @@ def runrnn(trn_ds, tst_ds, val_ds, lbr, model, quota, best_val, batchsize):
 
     return E_out, E_time
 
+def runcnn(trn_ds, tst_ds, val_ds, lbr, model, quota, best_val, batchsize):
+    E_in, E_out = [], []
+    intern = 0
+    finalnum = 0
+    print ("[Important] Start the CNN Train:")
+    start_time = time.time()
+    if quota % batchsize == 0:
+        intern = int( quota / batchsize)
+    else:
+        intern = int(quota / batchsize) + 1
+        finalnum = int(quota % batchsize)
+
+    for t in range(intern):
+        print ("[CNN]this is the "+str(t)+" times to ask")
+        x_first_train = []
+        y_first_train = []
+
+        scores = model.predict_pro(trn_ds)
+
+        unlabeled_entry_ids, X_pool = zip(*trn_ds.get_unlabeled_entries())
+
+        if t == intern - 1 and finalnum != 0:
+            max_n = heapq.nsmallest(finalnum, range(len(scores)), scores.take)
+        else:
+            max_n = heapq.nsmallest(batchsize, range(len(scores)), scores.take)
+
+
+        X, _ = zip(*trn_ds.data)
+
+        print (max_n)
+        for ask_id in max_n:
+            real_id = unlabeled_entry_ids[ask_id]
+            lb = lbr.label(X[real_id])
+            trn_ds.update(real_id, lb)
+            x_first_train.append(X[real_id])
+            y_first_train.append(lb)
+
+        x_first_train = np.array(x_first_train)
+        y_first_train = np.array(y_first_train)
+
+        first_train = Dataset(x_first_train,y_first_train)
+
+        best_val = model.retrain(trn_ds, val_ds, best_val, first_train)
+
+        # E_in = np.append(E_in, 1 - model.score(trn_ds))
+        E_out = np.append(E_out, model.score(tst_ds))
+        # print (E_in)
+        print (E_out)
+
+    E_time = get_time_dif(start_time)
+
+    return E_out, E_time
 
 def split_train_test(train_dir, vocab_dir, test_size, n_labeled, wordslength):
     #train_dir = './data/labeled1.txt'
@@ -311,120 +276,85 @@ def split_train_test_rnn(train_dir, vocab_dir, vocab_size, test_size, val_size, 
 def main():
     config = TRNNConfig()
 
-    train_dir = './data/train10_shuf_3000.txt'
-    vocab_dir = './data/vocab_train10_shuf_3000.txt'
-    batchsize = 64
+    train_dir = './data/train10_shuf_10000.txt'
+    vocab_dir = './data/vocab_train10_shuf_10000.txt'
+    batchsize = config.batch_size
     wordslength = config.seq_length
     vocab_size = config.vocab_size
     numclass = config.num_classes
     val_size = 0.15
     test_size = 0.2    # the percentage of samples in the dataset that will be
-    n_labeled = 300     # number of samples that are initially labeled
+    n_labeled = 1000     # number of samples that are initially labeled
     categories_class = ['体育', '家居', '娱乐','游戏','财经','房产','教育','时尚','时政','科技']
-    batch_one = 1
-    batch_sixteen = 16
-    batch_128 = 128
-    batch_256 = 256
-    resultfile = open('queryresult4.txt','w')
-    result = {'E1':[],'E2':[],'E3':[]}
+
+    result = {'E1':[],'E2':[]}
     for i in range(1):
         trn_ds_al, tst_ds_al, y_train_rnn, fully_labeled_trn_ds_al, trn_ds_rnn, tst_ds_rnn, fully_labeled_trn_ds_rnn, val_ds_rnn = \
          split_train_test_rnn(train_dir, vocab_dir, vocab_size, test_size, val_size, n_labeled, wordslength, categories_class)
         trn_ds2 = copy.deepcopy(trn_ds_al)
         trn_ds3 = copy.deepcopy(trn_ds_al)
-        trn_ds4 = copy.deepcopy(trn_ds_al)
-
-        trn_ds5 = copy.deepcopy(trn_ds_al)
-        trn_ds6 = copy.deepcopy(trn_ds_al)
-
         lbr_al = IdealLabeler(fully_labeled_trn_ds_al)
         lbr_rnn = IdealLabeler(fully_labeled_trn_ds_rnn)
+
+        trn_ds_cnn = copy.deepcopy(trn_ds_rnn)
+        val_ds_cnn = copy.deepcopy(val_ds_rnn)
+        tst_ds_cnn = copy.deepcopy(tst_ds_rnn)
+        fully_labeled_trn_ds_cnn = copy.deepcopy(fully_labeled_trn_ds_rnn)
+        lbr_cnn = IdealLabeler(fully_labeled_trn_ds_cnn)
 
 
         quota = len(y_train_rnn) - n_labeled
 
-        model = SVM(kernel='rbf', decision_function_shape='ovr')
-        qs2 = UncertaintySampling(trn_ds_al, method='sm', model=SVM(decision_function_shape='ovr'))
-        E_out_us16, E_time_us16 = realrun_qs(trn_ds_al, tst_ds_al, lbr_al, model, qs2, quota, batch_sixteen)
+        modelcnn = RNN_Probability_Model_LSTM(vocab_dir, wordslength, batchsize, numclass, categories_class)
+        modelcnn.train(trn_ds_cnn, val_ds_cnn)
+        test_acc = modelcnn.test(val_ds_cnn)
+        E_out_cnn, E_time_cnn = runrnn(trn_ds_cnn, tst_ds_cnn, val_ds_cnn, lbr_cnn, modelcnn, quota, test_acc, batchsize)
+
+        modelrnn = RNN_Probability_Model(vocab_dir, wordslength, batchsize, numclass, categories_class)
+        modelrnn.train(trn_ds_rnn, val_ds_rnn)
+        #test_acc = 0.5
+        test_acc = modelrnn.test(val_ds_rnn)
+        E_out_rnn, E_time_rnn = runrnn(trn_ds_rnn, tst_ds_rnn, val_ds_rnn, lbr_rnn, modelrnn, quota, test_acc, batchsize)
 
 
-        qs = UncertaintySampling(trn_ds3, method='sm',model=SVM(decision_function_shape='ovr'))
-        model = SVM(kernel='rbf',decision_function_shape='ovr')
-        E_out_us64, E_time_us64 = realrun_qs(trn_ds3, tst_ds_al, lbr_al, model, qs, quota, batchsize)
-
-        qs4 = UncertaintySampling(trn_ds4, method='sm',model=SVM(decision_function_shape='ovr'))
-        model = SVM(kernel='rbf',decision_function_shape='ovr')
-        E_out_us1, E_time_us1 = realrun_qs(trn_ds4, tst_ds_al, lbr_al, model, qs4, quota, batch_one)
-
-        qs5 = UncertaintySampling(trn_ds5, method='sm',model=SVM(decision_function_shape='ovr'))
-        model = SVM(kernel='rbf',decision_function_shape='ovr')
-        E_out_us128, E_time_us128 = realrun_qs(trn_ds5, tst_ds_al, lbr_al, model, qs5, quota, batch_128)
-
-        qs6 = UncertaintySampling(trn_ds6, method='sm',model=SVM(decision_function_shape='ovr'))
-        model = SVM(kernel='rbf',decision_function_shape='ovr')
-        E_out_us256, E_time_us256 = realrun_qs(trn_ds6, tst_ds_al, lbr_al, model, qs5, quota, batch_256)
-
-
-
-
-        resultfile.writelines(str(E_out_us1)+'\n')
-        resultfile.writelines(str(E_time_us1)+'\n')
-        resultfile.writelines(str(E_out_us16)+'\n')
-        resultfile.writelines(str(E_time_us16)+'\n')
-        resultfile.writelines(str(E_out_us64)+'\n')
-        resultfile.writelines(str(E_time_us64)+'\n')
-        resultfile.writelines(str(E_out_us128)+'\n')
-        resultfile.writelines(str(E_time_us128)+'\n')
-        resultfile.writelines(str(E_out_us256)+'\n')
-        resultfile.writelines(str(E_time_us256)+'\n')
-      #  if len(E_out_us1) > len(E_out_us16):
-      #      E_out_us1.pop()
-      #  if len(E_out_us1) > len(E_out_us64):
-      #      E_out_us1.pop()
         # test_acc = modelrnn.test(tst_ds)
-        for t in range(len(E_out_us1)):
-            if t % batchsize == 0:
-                result['E1'].append(E_out_us1[t])
 
-        for m in range(len(E_out_us16)):
-            if m % 4 == 0:
-                result['E3'].append(E_out_us16[m])
-        # result['E3'].append(E_out_rnn1)
-        result['E2'].append(E_out_us64)
+        result['E1'].append(E_out_cnn)
+        result['E2'].append(E_out_rnn)
 
 
-    E_out_us1 = np.mean(result['E1'],axis=0)
-    E_out_us64 = np.mean(result['E2'],axis=0)
-    E_out_us16 = np.mean(result['E3'],axis=0)
+
+    E_out_cnn = np.mean(result['E1'],axis=0)
+    # E_out_random = np.mean(result['E2'],axis=0)
+    E_out_rnn = np.mean(result['E2'],axis=0)
     # Plot the learning curve of UncertaintySampling to RandomSampling
     # The x-axis is the number of queries, and the y-axis is the corresponding
     # error rate.
-    print (np.shape(E_out_us1))
-    print (np.shape(E_out_us16))
-    print (np.shape(E_out_us64))
-    
-    print ("[Result] for Uncertainty Sampling")
-    print (E_out_us1)
-    print (E_time_us1)
-    print (E_out_us16)
-    print (E_time_us16)
-    print (E_out_us64)
-    print (E_time_us64)
+    modelcnn.test(tst_ds_cnn)
+    modelrnn.test(tst_ds_rnn)
+
+    print ("[Result] for RNN")
+    print (E_out_cnn)
+    print (E_time_cnn)
+    print ("[Result] for RNN")
+    print (E_out_rnn)
+    print (E_time_rnn)
     if quota % batchsize == 0:
         intern = int( quota / batchsize)
     else:
         intern = int(quota / batchsize) + 1
     query_num = np.arange(1, intern + 1)
     plt.figure(figsize=(10,8))
-    plt.plot(query_num, E_out_us1, 'b', label='Single1')
-    plt.plot(query_num, E_out_us16, 'r', label='Batch16')
-    plt.plot(query_num, E_out_us64, 'g', label='Batch64')
+    #plt.plot(query_num, E_in_1, 'b', label='qs Ein')
+    #plt.plot(query_num, E_in_2, 'r', label='random Ein')
+    plt.plot(query_num, E_out_cnn, 'g', label='LSTM')
+    plt.plot(query_num, E_out_rnn, 'r', label='GRU')
     plt.xlabel('Number of Batches')
     plt.ylabel('Accuracy')
     plt.title('Result')
     plt.legend(loc='upper center', bbox_to_anchor=(0.5, -0.05),
                fancybox=True, shadow=True, ncol=5)
-    plt.savefig('testmerge_rnn_10_3000_0705_time.png')
+    plt.savefig('testmerge_gru_lstm_10_10000_0727.png')
     plt.show()
 
 
