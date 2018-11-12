@@ -28,7 +28,7 @@ from datetime import timedelta
 import tensorflow as tf
 import tensorflow.contrib.keras as kr
 
-from .rnn_model import TRNNConfig, TextRNN, TRNNConfigLSTM
+from .rnn_model_config import TRNNConfig, TextRNN, TRNNConfigLSTM
 #from active.merge_al_rnn.rnn_model import TRNNConfig, TextRNN
 # from .cnews_loader import read_category, read_vocab
 from sklearn.metrics import accuracy_score
@@ -48,12 +48,12 @@ class RNN_Probability_Model:
     def __init__(self, vocabdir, wordslength, batchsize, numclass, categories_class):
 
         self.vocab_dir = vocabdir
-        self.tensorboard_dir = 'tensorboard/textmergernn_test_10000'
+        self.tensorboard_dir = 'tensorboard/rnn_spam'
         self.numclass = numclass
         self.wordslength = wordslength
 
         self.batchsize = batchsize
-        self.save_dir = 'checkpoints/textmergernn_test_10000'
+        self.save_dir = 'checkpoints/rnn_spam'
         self.save_path = os.path.join(self.save_dir, 'best_validation')  # 最佳验证结果保存路径
         self.config = TRNNConfig()
         self.categories, self.cat_to_id = read_category(categories_class)
@@ -323,10 +323,9 @@ class RNN_Probability_Model:
              self.model.keep_prob: 1.0
         }
 
-		
-		
         # self.categories = ['simple','complicated','preference']
-        self.categories = ['pe', 'furniture', 'entertainment','game','finical','home','edu','fashion','politic','technique']
+        # self.categories = ['pe', 'furniture', 'entertainment','game','finical','home','edu','fashion','politic','technique']
+        self.categories = ['spam', 'ham']
         y_pred_cls = self.session.run(self.model.y_pred_cls,feed_dict=feed_dict)
         y_pro = self.session.run(self.model.pred_pro, feed_dict = feed_dict)
         
@@ -349,7 +348,7 @@ class RNN_Probability_Model:
             self.model.input_x: kr.preprocessing.sequence.pad_sequences([data], self.wordslength),
             self.model.keep_prob: 1.0
         }
-        self.categories = ['simple','complicated','preference']
+        self.categories = ['spam', 'ham']
         y_pred_cls = self.session.run(self.model.y_pred_cls, feed_dict=feed_dict)
         y_pro = self.session.run(self.model.pred_pro, feed_dict = feed_dict)
         # print (y_pro)
@@ -390,7 +389,8 @@ class RNN_Probability_Model:
         # 评估
         print("Precision, Recall and F1-Score...")
        # '体育', '家居', '娱乐', '游戏', '财经', '房产', '教育', '时尚', '时政', '科技'
-        categories = ['pe', 'furniture', 'entertainment','game','finical','home','edu','fashion','politic','technique']
+       #  categories = ['pe', 'furniture', 'entertainment','game','finical','home','edu','fashion','politic','technique']
+        categories = ['ham', 'spam']
         print(metrics.classification_report(y_test_cls, y_pred_cls, target_names=categories))
 
         # 混淆矩阵
@@ -678,8 +678,9 @@ class RNN_Probability_Model_LSTM:
         }
 
         # self.categories = ['simple','complicated','preference']
-        self.categories = ['pe', 'furniture', 'entertainment', 'game', 'finical', 'home', 'edu', 'fashion', 'politic',
-                           'technique']
+        # self.categories = ['pe', 'furniture', 'entertainment', 'game', 'finical', 'home', 'edu', 'fashion', 'politic',
+        #                    'technique']
+        self.categories = ['spam', 'ham']
         y_pred_cls = self.session.run(self.model.y_pred_cls, feed_dict=feed_dict)
         y_pro = self.session.run(self.model.pred_pro, feed_dict=feed_dict)
 
@@ -701,7 +702,8 @@ class RNN_Probability_Model_LSTM:
             self.model.input_x: kr.preprocessing.sequence.pad_sequences([data], self.wordslength),
             self.model.keep_prob: 1.0
         }
-        self.categories = ['simple', 'complicated', 'preference']
+        # self.categories = ['simple', 'complicated', 'preference']
+        self.cattegories = ['spam', 'ham']
         y_pred_cls = self.session.run(self.model.y_pred_cls, feed_dict=feed_dict)
         y_pro = self.session.run(self.model.pred_pro, feed_dict=feed_dict)
         # print (y_pro)
@@ -742,8 +744,9 @@ class RNN_Probability_Model_LSTM:
         # 评估
         print("Precision, Recall and F1-Score...")
         # '体育', '家居', '娱乐', '游戏', '财经', '房产', '教育', '时尚', '时政', '科技'
-        categories = ['pe', 'furniture', 'entertainment', 'game', 'finical', 'home', 'edu', 'fashion', 'politic',
-                      'technique']
+        # categories = ['pe', 'furniture', 'entertainment', 'game', 'finical', 'home', 'edu', 'fashion', 'politic',
+        #               'technique']
+        categories = ['spam', 'ham']
         print(metrics.classification_report(y_test_cls, y_pred_cls, target_names=categories))
 
         # 混淆矩阵

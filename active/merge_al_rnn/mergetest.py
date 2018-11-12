@@ -386,7 +386,7 @@ def main():
     else:
         intern = int(quota / batchsize) + 1
     query_num = np.arange(1, intern + 1)
-    plt.figure(figsize=(10,8))
+    plt.figure(figsize=(10, 8))
     #plt.plot(query_num, E_in_1, 'b', label='qs Ein')
     #plt.plot(query_num, E_in_2, 'r', label='random Ein')
     plt.plot(query_num, E_out_us, 'g', label='Traditional AL')
